@@ -31,6 +31,24 @@ enum ColumnAlign
 	right,
 }
 
+/**
+ * How a column should auto-size itself to fit, for `ListView.autoSizeColumn`.
+ *
+ * This is the analog of WinForms' negative column-width sentinels: `content`
+ * matches `-1` (fit the data) and `header` matches `-2` (fit the header text).
+ */
+enum ColumnAutoSize
+{
+	/// Fit the widest cell in the column (`LVSCW_AUTOSIZE`; WinForms `-1`).
+	content,
+	/**
+	 * Fit the header text (`LVSCW_AUTOSIZE_USEHEADER`; WinForms `-2`). Applied to
+	 * the *last* column the native control instead stretches it to fill the list's
+	 * remaining width — the usual way to make a final column absorb the slack.
+	 */
+	header,
+}
+
 /// Map a `ColumnAlign` to its `LVCFMT_*` flag.
 private int columnAlignFmt(ColumnAlign align_) @safe pure nothrow @nogc
 {
@@ -99,10 +117,28 @@ class ListView : Control
 		return columnCount_++;
 	}
 
-	/// Set the pixel width of column `col`.
+	/// Set the pixel width of column `col`. For autosizing, use `autoSizeColumn`.
 	void setColumnWidth(int col, int width)
 	{
 		SendMessageW(handle, LVM_SETCOLUMNWIDTH, col, width);
+	}
+
+	/**
+	 * Size column `col` to fit its content (`ColumnAutoSize.content`) or its header
+	 * text (`ColumnAutoSize.header`) — the equivalents of WinForms' `-1` and `-2`
+	 * column widths.
+	 *
+	 * This is a *one-shot* measurement of the column's current contents, not a
+	 * persistent mode: call it **after** the rows are populated, and again if the
+	 * data changes. As a special case, `ColumnAutoSize.header` on the last column
+	 * stretches that column to fill the list's remaining width, so a common recipe
+	 * is fixed/auto widths for the leading columns and `header` on the last.
+	 */
+	void autoSizeColumn(int col, ColumnAutoSize mode = ColumnAutoSize.content)
+	{
+		immutable int sentinel = mode == ColumnAutoSize.header
+			? LVSCW_AUTOSIZE_USEHEADER : LVSCW_AUTOSIZE;
+		SendMessageW(handle, LVM_SETCOLUMNWIDTH, col, sentinel);
 	}
 
 	/// Get the pixel width of column `col`.

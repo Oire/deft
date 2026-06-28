@@ -7,7 +7,7 @@ A native UI framework for the [D programming language](https://dlang.org). Deft 
 ## Why Deft
 
 - **Native controls, native accessibility.** Standard Win32 common controls expose MSAA/IAccessible automatically, so screen readers such as JAWS and NVDA work without a custom accessibility layer. Dialogs are real dialog-class windows; list and tree context menus open from the keyboard (Apps key / Shift+F10); radio groups are a single tab stop navigated by arrow keys.
-- **Automatic layout.** Compose `HBox`/`VBox` sizers or a `Grid` table layout (auto/pixel/percent tracks, like WinForms' `TableLayoutPanel`); place each child with a fluent handle — `add(w).proportion(1).pad(...).alignH(HAlign.center)` — and the layout recalculates on resize.
+- **Automatic layout.** Compose `HBox`/`VBox` sizers or a `Grid` table layout (auto/pixel/percent tracks, like WinForms' `TableLayoutPanel`); place each child with a fluent handle — `add(w).stretch().pad(...).alignH(HAlign.center)` — and the layout recalculates on resize.
 - **A small, modern D API.** Delegate-based events (`button.onClicked ~= { ... };`), deterministic teardown (`dispose()`), and no Phobos dependency in the library itself.
 
 ## Platforms
@@ -98,6 +98,66 @@ dlg.setSizer(grid);
 ```
 
 A fuller example — a widget gallery that exercises every control type (menus, tabs, lists, a tree, a status bar, a tray icon, a timer, and a native modal dialog) — lives in [`demo/source/app.d`](demo/source/app.d).
+
+## Layout guide
+
+Deft's sizers never ask you for a coordinate. You describe each child's *intent* and the integer layout math (in `deft.layout`) does the rest, recomputing on every resize. This is what makes layouts easy to get right **without inspecting them visually** — a correct description is a correct layout at every window size. The advice below is written with that goal in mind.
+
+### Boxes or `Grid`? The deciding question is cross-row alignment
+
+- **Nested `HBox`/`VBox` lay out independently.** A child's size in one box has no effect on a child in a sibling box. This is what you want *most* of the time: page structure, toolbars, a button row, a list that fills with buttons pinned below.
+- **`Grid` exists for the one thing boxes structurally cannot do: align cells across rows and columns.** Every cell in a grid column shares that column's width.
+
+A form is the case that *needs* the shared column. Build a form from one `HBox` per row and each row measures its own label independently, so the field edges stagger by a few pixels per row — a ragged left edge you'd have to fix by hand-matching every label's width. A `Grid` with an `autoSize` label column measures the longest label across **all** rows and gives every field the same start, automatically.
+
+> **Rule of thumb:** reach for a box first; escalate to `Grid` the moment you'd otherwise be hand-matching sizes across rows or columns. Forms trip that wire immediately; almost nothing else does.
+
+### How box layout divides space
+
+A box lays its children out along its main axis (`HBox` = horizontal, `VBox` = vertical) in two passes:
+
+1. Every **fixed** child takes its own preferred size — measured by the control (`getPreferredSize()`): a button sizes to its text, a label to its caption. These are added up.
+2. Whatever space is **left over** is divided among the **stretching** children in proportion to their weights.
+
+That's the entire model. A single integer — the child's *proportion* — encodes both passes: `0` means "no share of the leftover, just use my preferred size" (fixed), and any weight `n ≥ 1` means "give me a share of the leftover, sized by `n`." Two weight-`1` children split the slack evenly; weights `2` and `1` split it 2:1. **Only the ratios matter** — `1 : 2` and `50 : 100` are the same split — so whole numbers express every possibility and there are no fractional weights. This is the classic box-sizer model (wxWidgets, CSS `flex-grow`, GTK).
+
+### Describe intent, not geometry
+
+Per child you state one of two intents, so you never type a coordinate. The readable aliases say it at the call site:
+
+- **`add(w).fixed()`** → "take your natural size" (alias for `proportion(0)`, the default). Use for buttons, labels, anything that shouldn't stretch.
+- **`add(w).stretch()`** → "grow to fill the leftover space" (alias for `proportion(1)`). Pass a weight to share unevenly: `stretch(2)` versus `stretch(1)` splits 2:1.
+
+`proportion(n)` remains available if you prefer the raw weight, but `fixed()`/`stretch()` read better — and avoid the easy-to-invert "what does proportion 0 mean again?" trap.
+
+In a `Grid`, the column/row analog is `GridTrack.autoSize` (fit content, like `fixed`), `GridTrack.percent(w)` (a weighted share of the leftover, like `stretch`), and `GridTrack.pixels(n)` (a fixed pixel size).
+
+A few practices follow from this:
+
+- **One stretchy child per box.** Make natural-size children `fixed()` and let *one* region `stretch()`. If you can state "which one thing grows," the window is correct at any size with nothing left to eyeball.
+- **Prefer `autoSize`/`percent` over `pixels` and `minSize`.** The fixed-pixel forms reintroduce magic numbers you can't sanity-check by feel. Reserve them for things with an inherently fixed size (an icon, a fixed-width sidebar); default to letting content or slack decide.
+- **Set spacing once, as a constant.** Pick one gap (e.g. 8) and reuse it via `setSpacing` / `Padding.all` for consistent, structural breathing room.
+- **Add children in reading order.** A sizer never reorders its children, so the order you call `add()` is the order Tab visits and a screen reader reads. Building each box in reading order makes "correct layout" and "correct tab order" the same act.
+
+### Verify layout without seeing it
+
+The layout math runs headless — no window, no message loop — so you can assert exact bounds in a `unittest` instead of inspecting a window. This is how `deft.layout`'s own tests work (a `FakeWidget` records the `Rect` it's given):
+
+```d
+unittest
+{
+    auto list = new FakeWidget(Size(0, 0));
+    auto buttons = new FakeWidget(Size(200, 30));
+    auto root = new VBox();
+    root.add(list).stretch();              // fills the remaining height
+    root.add(buttons).fixed();             // natural 30px, pinned below
+    root.layout(Rect(0, 0, 400, 300));
+    assert(buttons.bounds == Rect(0, 270, 400, 30));
+    assert(list.bounds == Rect(0, 0, 400, 270));
+}
+```
+
+Encode "buttons are 30px tall at the bottom, the list fills the rest" and `dub test` proves it for whatever window sizes you assert. For the *running* app, accessible names, roles, and focusability can be checked programmatically through the MSAA/UIA layer (see [CLAUDE.md](CLAUDE.md)).
 
 ## Building, testing, running
 

@@ -113,6 +113,29 @@ final class SizerItem
 		return this;
 	}
 
+	/**
+	 * Keep the child's preferred size on the main axis — it neither grows nor
+	 * shrinks as the container resizes. A readable alias for `proportion(0)`
+	 * (the default), so `add(button).fixed()` states the intent at the call site.
+	 */
+	SizerItem fixed() return
+	{
+		proportion_ = 0;
+		return this;
+	}
+
+	/**
+	 * Make the child grow to share the container's leftover space, with the given
+	 * `weight` (default 1). A readable alias for `proportion(weight)`: two
+	 * `stretch()` children split the slack evenly, `stretch(2)` versus `stretch(1)`
+	 * splits it 2:1. So `add(list).stretch()` reads as "the list takes the slack."
+	 */
+	SizerItem stretch(int weight = 1) return
+	{
+		proportion_ = weight < 1 ? 1 : weight;
+		return this;
+	}
+
 	/// Reserve padding around the child within its cell.
 	SizerItem pad(Padding padding) return
 	{
@@ -992,6 +1015,31 @@ unittest
 	box.add(a).proportion(2);
 	box.add(b).proportion(1);
 	box.layout(Rect(0, 0, 90, 10));
+	assert(a.bounds == Rect(0, 0, 60, 10));
+	assert(b.bounds == Rect(60, 0, 30, 10));
+}
+
+unittest
+{
+	// fixed()/stretch() aliases match the equivalent proportion() forms: a fixed
+	// child keeps its preferred width and the stretch child takes the rest.
+	auto fixedW = new FakeWidget(Size(30, 10));
+	auto flex = new FakeWidget(Size(0, 0));
+	auto box = new HBox();
+	box.add(fixedW).fixed();
+	box.add(flex).stretch();
+	box.layout(Rect(0, 0, 100, 10));
+	assert(fixedW.bounds == Rect(0, 0, 30, 10));
+	assert(flex.bounds == Rect(30, 0, 70, 10));
+
+	// Weighted stretch: stretch(2) versus stretch(1) splits 90px into 60 and 30,
+	// and stretch(0) is clamped up to weight 1 (it must still grow).
+	auto a = new FakeWidget(Size(0, 0));
+	auto b = new FakeWidget(Size(0, 0));
+	auto two = new HBox();
+	two.add(a).stretch(2);
+	two.add(b).stretch(0); // clamped to 1
+	two.layout(Rect(0, 0, 90, 10));
 	assert(a.bounds == Rect(0, 0, 60, 10));
 	assert(b.bounds == Rect(60, 0, 30, 10));
 }

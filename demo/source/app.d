@@ -93,6 +93,11 @@ int main()
 	listView.addItem(["My first note", "2026-05-01", "2026-04-15"]);
 	listView.addItem(["Shopping list", "2026-04-30", "2026-04-20"]);
 	listView.addItem(["Meeting agenda", "2026-04-28", "2026-04-10"]);
+	// Autosize the data columns to their content, then let the last one fill the
+	// remaining width — done after the rows are added (autosize measures content).
+	listView.autoSizeColumn(0, ColumnAutoSize.content);
+	listView.autoSizeColumn(1, ColumnAutoSize.content);
+	listView.autoSizeColumn(2, ColumnAutoSize.header);
 	setAccessibleName(listView, "Notes list");
 	listsBox.add(listView).proportion(2).pad(Padding.all(6));
 
