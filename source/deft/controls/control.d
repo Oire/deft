@@ -58,11 +58,14 @@ class Control : Widget
 
 		HWND parentHandle = parent !is null ? parent.handle : null;
 
+		// WS_GROUP makes each control start its own keyboard navigation group, so
+		// arrow keys stay within a control rather than bleeding to the next one.
+		// Radio buttons that continue a group clear it again (see RadioButton).
 		handle = CreateWindowExW(
 			exStyle,
 			className.toWStringz,
 			""w.ptr,
-			WS_CHILD | WS_VISIBLE | style,
+			WS_CHILD | WS_VISIBLE | WS_GROUP | style,
 			0, 0, 0, 0,
 			parentHandle,
 			cast(HMENU) cast(size_t) controlId_,

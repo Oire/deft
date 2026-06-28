@@ -10,6 +10,7 @@ import core.sys.windows.windows;
 import core.sys.windows.commctrl;
 import core.sys.windows.objbase;
 
+import deft.menu : acceleratorTable;
 import deft.platform.win32.init : ensureWindowClass;
 
 // SetProcessDpiAwarenessContext is Win10 1703+; resolved dynamically so the
@@ -93,10 +94,18 @@ class Application
 		MSG msg;
 		while (GetMessageW(&msg, null, 0, 0) > 0)
 		{
-			// Route to the dialog manager first so Tab/Shift+Tab, arrow keys and
+			HWND active = GetActiveWindow();
+
+			// Keyboard accelerators (menu shortcuts) take priority: translating
+			// one dispatches the matching WM_COMMAND and consumes the message.
+			HACCEL accel = acceleratorTable();
+			if (active !is null && accel !is null
+				&& TranslateAcceleratorW(active, accel, &msg))
+				continue;
+
+			// Then the dialog manager so Tab/Shift+Tab, arrow keys and
 			// default-button handling move focus between the active window's child
 			// controls. Without this, child controls are unreachable by keyboard.
-			HWND active = GetActiveWindow();
 			if (active is null || !IsDialogMessageW(active, &msg))
 			{
 				TranslateMessage(&msg);

@@ -12,8 +12,12 @@ version (Windows):
 import core.sys.windows.windows;
 
 import deft.controls.control : Control, routeCommand, routeNotify;
+import deft.controls.statusbar : StatusBar;
+import deft.controls.timer : dispatchTimer;
+import deft.controls.trayicon : dispatchTrayMessage, trayCallbackMessage;
 import deft.events;
 import deft.layout : Sizer;
+import deft.menu : MenuBar, dispatchMenuCommand, setAcceleratorTable;
 import deft.util.strings;
 import deft.widget;
 import deft.platform.win32.init : deftWindowClassName, ensureWindowClass, hInstance;
@@ -46,6 +50,12 @@ class Window : Widget
 
 	/// Optional root sizer that arranges the window's contents on resize.
 	private Sizer rootSizer_;
+
+	/// Optional status bar docked at the bottom; its height is reserved in layout.
+	private StatusBar statusBar_;
+
+	/// Optional menu bar; retained so the GC keeps its handle alive.
+	private MenuBar menuBar_;
 
 	/// Control id of the designated default button (0 = none).
 	private int defaultButtonId_;
@@ -113,11 +123,51 @@ class Window : Widget
 		relayout();
 	}
 
+	/**
+	 * Dock a status bar at the bottom of the window. Its height is reserved so
+	 * the root sizer's content never overlaps it.
+	 */
+	void setStatusBar(StatusBar statusBar)
+	{
+		statusBar_ = statusBar;
+		relayout();
+	}
+
+	/**
+	 * Attach a menu bar to the window and install its keyboard accelerators.
+	 * Re-lays out the contents, since the menu reduces the client area.
+	 */
+	void setMenuBar(MenuBar menuBar)
+	{
+		menuBar_ = menuBar;
+		if (handle && menuBar !is null)
+		{
+			SetMenu(handle, menuBar.handle);
+			DrawMenuBar(handle);
+			setAcceleratorTable(menuBar.buildAcceleratorTable());
+			relayout();
+		}
+	}
+
 	/// Re-run the root sizer over the current client area, if one is set.
 	void relayout()
 	{
+		auto rc = getClientRect();
+		layoutContents(rc.width, rc.height);
+	}
+
+	/// Lay out the root sizer over the client area minus any docked status bar.
+	private void layoutContents(int width, int height)
+	{
+		if (statusBar_ !is null)
+		{
+			statusBar_.reposition();
+			height -= statusBar_.getHeight();
+			if (height < 0)
+				height = 0;
+		}
 		if (rootSizer_ !is null)
-			rootSizer_.layout(getClientRect());
+			rootSizer_.layout(Rect(0, 0, width, height));
 	}
 
 	/**
@@ -128,6 +178,14 @@ class Window : Widget
 	void setDefaultButton(Control button)
 	{
 		defaultButtonId_ = button is null ? 0 : button.controlId;
+	}
+
+	/// Move keyboard focus to the first focusable child control, if any.
+	void focusFirstControl()
+	{
+		HWND first = firstFocusableChild();
+		if (first !is null)
+			SetFocus(first);
 	}
 
 	/// The handle of the first visible, enabled, tab-stop child, or null.
@@ -160,13 +218,22 @@ class Window : Widget
 		case WM_SIZE:
 			immutable int w = LOWORD(cast(DWORD) lParam);
 			immutable int h = HIWORD(cast(DWORD) lParam);
-			if (rootSizer_ !is null)
-				rootSizer_.layout(Rect(0, 0, w, h));
+			layoutContents(w, h);
 			onResize.fire(w, h);
 			return 0;
 
 		case WM_COMMAND:
+			// Menu and accelerator commands carry a null lParam; controls carry
+			// their HWND. Try the menu registry first for the former.
+			if (cast(HWND) lParam is null
+				&& dispatchMenuCommand(LOWORD(cast(DWORD) wParam)))
+				return 0;
 			if (routeCommand(wParam, lParam))
+				return 0;
+			return super.processMessage(msg, wParam, lParam);
+
+		case WM_TIMER:
+			if (dispatchTimer(cast(uint) wParam))
 				return 0;
 			return super.processMessage(msg, wParam, lParam);
 
@@ -218,6 +285,9 @@ class Window : Widget
 			return 0;
 
 		default:
+			if (msg == trayCallbackMessage
+				&& dispatchTrayMessage(cast(uint) wParam, cast(uint) lParam))
+				return 0;
 			return super.processMessage(msg, wParam, lParam);
 		}
 	}
