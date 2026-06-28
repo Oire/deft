@@ -28,6 +28,11 @@ docs.json
 __dummy.html
 dub.selections.json
 
+# Generated API documentation (DDoc). `dub build -b ddoc` writes to api/.
+# docs/*.html guards against the built-in `-b docs`, which would write into
+# docs/ — it can only match generated HTML, never the .md plans in docs/plans/.
+/api/
+docs/*.html
 
 # Code coverage
 *.lst

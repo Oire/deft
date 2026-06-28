@@ -1,0 +1,23 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# D source: tabs for indentation (project convention).
+[*.d]
+indent_style = tab
+
+# dub manifests and other JSON.
+[*.json]
+indent_style = tab
+
+[*.{md,rc,manifest}]
+indent_style = space
+indent_size = 2
+
+[*.ps1]
+indent_style = space
+indent_size = 4
