@@ -4,7 +4,7 @@ Guidance for Claude Code (and humans) working in this repository.
 
 ## What this is
 
-**Deft** is a native UI framework for the D language. It wraps real native platform controls (Win32 today; GTK4/Cocoa planned) and adds a delegate-based event system and an HBox/VBox layout engine. The whole point of wrapping native controls is that they bring **native accessibility** (MSAA/IAccessible) for free — accessibility is a first-class concern here, not an afterthought.
+**Deft** is a native UI framework for the D language. It wraps real native platform controls (Win32 today; GTK4/Cocoa planned) and adds a delegate-based event system, box (`HBox`/`VBox`) and table (`Grid`) layout engines, and a full set of native controls (buttons, text fields, list/tree/combo views, menus, dialogs, a tray icon, …). The whole point of wrapping native controls is that they bring **native accessibility** (MSAA/IAccessible) for free — accessibility is a first-class concern here, not an afterthought.
 
 The framework is standalone and open-source. It is consumed by other projects (e.g. Notika) as a dub dependency; **no consumer-specific code lives here.**
 
@@ -13,17 +13,24 @@ The framework is standalone and open-source. It is consumed by other projects (e
 ```
 source/deft/
   package.d              public re-exports (import deft; gets everything)
-  app.d                  Application: init + message loop
-  window.d               Window: top-level windows, default-button, sizer wiring
+  app.d                  Application: init + message loop (+ accelerator translation)
+  window.d               Window: top-level windows, menu/status-bar/timer/tray wiring
   widget.d               Widget base + Rect/Size/Padding
   events.d               Event!(T...) multicast delegates + arg structs
-  layout.d               Sizer / HBox / VBox
+  layout.d               Sizer / HBox / VBox + Grid table layout; HAlign/VAlign; fluent SizerItem
+  menu.d                 MenuBar / Menu / MenuItem + accelerator parsing & tables
   commandqueue.d         CommandQueue!T / UiDispatcher!T (cross-thread)
   accessibility.d        setAccessibleName (MSAA Direct Annotation)
   controls/control.d     Control base for native common controls
+  controls/panel.d       Panel: sizer container that forwards child notifications
+  controls/label.d, button.d, textbox.d, listbox.d, combobox.d
+  controls/listview.d, treeview.d, checklistbox.d, tabcontrol.d, statusbar.d
+  controls/timer.d, trayicon.d
+  controls/dialog.d      native modal Dialog (#32770 via CreateDialogIndirectParam)
+  controls/messagebox.d  showMessageBox / (showInputDialog lives in dialog.d)
   util/strings.d         UTF-8 <-> UTF-16 (Win32 MultiByte/WideChar APIs)
   platform/win32/        init.d (window class), wndproc.d (master WndProc + registry)
-demo/                    demo app + Windows resource pipeline (manifest, version info)
+demo/                    widget-gallery demo + Windows resource pipeline (manifest, version info)
 docs/plans/              implementation plans; completed/ holds finished ones
 ```
 
