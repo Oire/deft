@@ -1,0 +1,24 @@
+{
+	"name": "deft-demo",
+	"description": "Demo application for the Deft UI framework",
+	"authors": [
+		"André Polykanine"
+	],
+	"license": "BSL-1.0",
+	"targetType": "executable",
+	"dependencies": {
+		"deft": {
+			"path": "../"
+		}
+	},
+	"preGenerateCommands-windows": [
+		"powershell -NoProfile -ExecutionPolicy Bypass -File \"$PACKAGE_DIR/make-res.ps1\""
+	],
+	"sourceFiles-windows": [
+		"app.res"
+	],
+	"lflags-windows": [
+		"/SUBSYSTEM:WINDOWS",
+		"/ENTRY:mainCRTStartup"
+	]
+}

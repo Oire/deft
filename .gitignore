@@ -14,10 +14,19 @@
 # Executables
 *.exe
 
+# Debug symbols / linker intermediates (MSVC linker keeps these out of the .exe)
+*.pdb
+*.ilk
+*.exp
+
+# rc.exe leftover temporary files (left behind only when a resource compile fails)
+RC[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]*
+
 # DUB
 .dub
 docs.json
 __dummy.html
+dub.selections.json
 
 
 # Code coverage

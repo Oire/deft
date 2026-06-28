@@ -1,0 +1,25 @@
+{
+	"name": "deft",
+	"description": "Native UI framework for D",
+	"authors": [
+		"André Polykanine"
+	],
+	"copyright": "Copyright © 2026, André Polykanine",
+	"license": "BSL-1.0",
+	"targetType": "library",
+	"sourcePaths": [
+		"source"
+	],
+	"importPaths": [
+		"source"
+	],
+	"libs-windows": [
+		"user32",
+		"comctl32",
+		"shell32",
+		"gdi32",
+		"ole32",
+		"oleaut32",
+		"oleacc"
+	]
+}
