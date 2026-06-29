@@ -53,7 +53,7 @@ class Control : Widget
 	 */
 	this(Widget parent, string className, DWORD style, DWORD exStyle = 0)
 	{
-		this.parent = parent;
+		this.parent_ = parent;
 		controlId_ = nextControlId();
 
 		HWND parentHandle = parent !is null ? parent.handle : null;
@@ -61,7 +61,7 @@ class Control : Widget
 		// WS_GROUP makes each control start its own keyboard navigation group, so
 		// arrow keys stay within a control rather than bleeding to the next one.
 		// Radio buttons that continue a group clear it again (see RadioButton).
-		handle = CreateWindowExW(
+		handle_ = CreateWindowExW(
 			exStyle,
 			className.toWStringz,
 			""w.ptr,

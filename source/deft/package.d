@@ -11,6 +11,8 @@
 module deft;
 
 public import deft.util.strings;
+public import deft.util.icons;
+public import deft.i18n;
 public import deft.events;
 public import deft.widget;
 public import deft.window;

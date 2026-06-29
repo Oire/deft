@@ -32,11 +32,11 @@ class Panel : Widget
 	this(Widget parent)
 	{
 		ensureWindowClass();
-		this.parent = parent;
+		this.parent_ = parent;
 
 		HWND parentHandle = parent !is null ? parent.handle : null;
 
-		handle = CreateWindowExW(
+		handle_ = CreateWindowExW(
 			WS_EX_CONTROLPARENT, // let the dialog manager tab into the children
 			deftWindowClassName.ptr,
 			""w.ptr,

@@ -11,6 +11,7 @@ version (Windows):
 
 import core.sys.windows.windows;
 
+import deft.app : Application;
 import deft.controls.control : Control, routeCommand, routeNotify;
 import deft.controls.statusbar : StatusBar;
 import deft.controls.timer : dispatchTimer;
@@ -20,7 +21,10 @@ import deft.layout : Sizer;
 import deft.menu : MenuBar, dispatchMenuCommand, setAcceleratorTable;
 import deft.util.strings;
 import deft.widget;
-import deft.platform.win32.init : deftWindowClassName, ensureWindowClass, hInstance;
+import deft.platform.win32.init : deftWindowClassName, hInstance;
+
+/// Count of live top-level `Window`s, so the app quits when the last one closes.
+private __gshared int g_topLevelWindowCount;
 
 /**
  * Arguments passed to `Window.onClose` handlers.
@@ -43,10 +47,21 @@ class Window : Widget
 	Event!(int, int) onResize;
 
 	/**
-	 * Whether this is the application's main window. When the main window is
-	 * destroyed the message loop is asked to quit (`PostQuitMessage`).
+	 * Force this window to be treated as the application's main window: destroying
+	 * it always quits the message loop (`PostQuitMessage`), even if other windows
+	 * remain.
+	 *
+	 * It defaults to `false` because, by default, the framework already quits when
+	 * the *last* top-level window is destroyed — so a single-window app needs no
+	 * configuration, and closing a secondary window never tears the app down. Set
+	 * it to `true` only when one specific window should end the app regardless of
+	 * the others.
 	 */
-	bool isMainWindow = true;
+	bool isMainWindow = false;
+
+	/// Minimum outer window size in pixels (0 = no minimum), enforced on resize.
+	private int minWidth_;
+	private int minHeight_;
 
 	/// Optional root sizer that arranges the window's contents on resize.
 	private Sizer rootSizer_;
@@ -66,9 +81,12 @@ class Window : Widget
 	 */
 	this(string title, int width, int height)
 	{
-		ensureWindowClass();
+		// Defensive: guarantee process initialization (common controls, COM, and
+		// — crucially — per-monitor DPI awareness) before the first window exists,
+		// even if the caller forgot to call `Application.initialize()`. Idempotent.
+		Application.instance.initialize();
 
-		handle = CreateWindowExW(
+		handle_ = CreateWindowExW(
 			WS_EX_CONTROLPARENT, // let the dialog manager recurse into child controls
 			deftWindowClassName.ptr,
 			title.toWStringz,
@@ -82,17 +100,47 @@ class Window : Widget
 
 		registerHandle();
 
+		if (handle_)
+			++g_topLevelWindowCount;
+
 		RECT rc;
 		if (handle && GetWindowRect(handle, &rc))
-			bounds = Rect.fromRECT(rc);
+			bounds_ = Rect.fromRECT(rc);
 		else
-			bounds = Rect(0, 0, width, height);
+			bounds_ = Rect(0, 0, width, height);
+	}
+
+	/**
+	 * Set the window's icon, shown in the title bar, the taskbar and the Alt+Tab
+	 * switcher. Pass the small and (optionally) large variants; if `large` is
+	 * null the `small` icon is used for both. Load an icon with `loadIcon`
+	 * (from the executable's resources) or `loadIconFromFile`.
+	 */
+	void setIcon(HICON small, HICON large = null)
+	{
+		if (!handle)
+			return;
+		SendMessageW(handle, WM_SETICON, ICON_SMALL, cast(LPARAM) small);
+		SendMessageW(handle, WM_SETICON, ICON_BIG,
+			cast(LPARAM)(large !is null ? large : small));
+	}
+
+	/**
+	 * Set the smallest outer size the user may resize the window to, in pixels.
+	 * Pass `0, 0` to remove the constraint. Without a minimum the layout engine
+	 * clamps to zero but the user can still shrink the window until its contents
+	 * collapse; a floor keeps a real app usable.
+	 */
+	void setMinimumSize(int width, int height)
+	{
+		minWidth_ = width < 0 ? 0 : width;
+		minHeight_ = height < 0 ? 0 : height;
 	}
 
 	/// Show the window and force an initial paint.
 	override void show()
 	{
-		visible = true;
+		visible_ = true;
 		if (handle)
 		{
 			ShowWindow(handle, SW_SHOW);
@@ -222,6 +270,19 @@ class Window : Widget
 			onResize.fire(w, h);
 			return 0;
 
+		case WM_GETMINMAXINFO:
+			// Enforce the minimum outer size the user can drag the window down to.
+			if (minWidth_ > 0 || minHeight_ > 0)
+			{
+				auto mmi = cast(MINMAXINFO*) lParam;
+				if (minWidth_ > 0)
+					mmi.ptMinTrackSize.x = minWidth_;
+				if (minHeight_ > 0)
+					mmi.ptMinTrackSize.y = minHeight_;
+				return 0;
+			}
+			return super.processMessage(msg, wParam, lParam);
+
 		case WM_COMMAND:
 			// Menu and accelerator commands carry a null lParam; controls carry
 			// their HWND. Try the menu registry first for the former.
@@ -280,7 +341,12 @@ class Window : Widget
 			return super.processMessage(msg, wParam, lParam);
 
 		case WM_DESTROY:
-			if (isMainWindow)
+			// Quit when this window is the explicitly designated main window, or
+			// when it is the last live top-level window — so a single-window app
+			// ends on close while closing a secondary window leaves the app running.
+			if (g_topLevelWindowCount > 0)
+				--g_topLevelWindowCount;
+			if (isMainWindow || g_topLevelWindowCount == 0)
 				PostQuitMessage(0);
 			return 0;
 

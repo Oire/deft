@@ -81,26 +81,62 @@ struct Padding
 abstract class Widget
 {
 	/// The native window handle this widget owns (null until created).
-	HWND handle;
+	protected HWND handle_;
 
 	/// The widget this one is parented to, if any.
-	Widget parent;
+	protected Widget parent_;
 
 	/// Child widgets, in z/insertion order.
-	Widget[] children;
+	protected Widget[] children_;
 
 	/// Cached visibility flag.
-	bool visible = true;
+	protected bool visible_ = true;
 
 	/// Cached bounds (window-relative for children, screen-relative for windows).
-	Rect bounds;
+	protected Rect bounds_;
 
 	private bool disposed_;
 
-	/// Raw handle accessor for subclasses and the backend.
-	protected HWND rawHandle() @property @safe pure nothrow @nogc
+	/**
+	 * The native window handle this widget owns (null until created).
+	 *
+	 * Read-only: a widget owns its handle for its whole lifetime and the framework
+	 * relies on that invariant (GC pinning, the HWND→widget registry). Consumers
+	 * may read it for interop with raw Win32 calls but cannot reassign it.
+	 */
+	final HWND handle() @property @safe nothrow @nogc
 	{
-		return handle;
+		return handle_;
+	}
+
+	/// The widget this one is parented to, if any. Read-only; see `addChild`.
+	final Widget parent() @property @safe nothrow @nogc
+	{
+		return parent_;
+	}
+
+	/// The child widgets, in z/insertion order. Read-only; see `addChild`.
+	final Widget[] children() @property @safe nothrow @nogc
+	{
+		return children_;
+	}
+
+	/// Whether the widget is currently visible. Read-only; see `setVisible`.
+	final bool visible() @property @safe nothrow @nogc
+	{
+		return visible_;
+	}
+
+	/// The widget's last-known bounds. Read-only; see `setBounds`/`getBounds`.
+	final Rect bounds() @property @safe nothrow @nogc
+	{
+		return bounds_;
+	}
+
+	/// Raw handle accessor for subclasses and the backend.
+	protected HWND rawHandle() @property @safe nothrow @nogc
+	{
+		return handle_;
 	}
 
 	/// Make the widget visible.
@@ -118,7 +154,7 @@ abstract class Widget
 	/// Set visibility, updating the native window if it exists.
 	void setVisible(bool value)
 	{
-		visible = value;
+		visible_ = value;
 		if (handle)
 			ShowWindow(handle, value ? SW_SHOW : SW_HIDE);
 	}
@@ -126,7 +162,7 @@ abstract class Widget
 	/// Move/resize the widget, updating the native window if it exists.
 	void setBounds(Rect r)
 	{
-		bounds = r;
+		bounds_ = r;
 		if (handle)
 			MoveWindow(handle, r.x, r.y, r.width, r.height, TRUE);
 	}
@@ -134,7 +170,7 @@ abstract class Widget
 	/// The widget's last-known bounds.
 	Rect getBounds()
 	{
-		return bounds;
+		return bounds_;
 	}
 
 	/// The widget's client area (origin at 0,0). Empty if not yet created.
@@ -191,8 +227,8 @@ abstract class Widget
 	{
 		if (child is null)
 			return;
-		children ~= child;
-		child.parent = this;
+		children_ ~= child;
+		child.parent_ = this;
 	}
 
 	/// Remove a child and clear its parent link. Unknown children are ignored.
@@ -202,9 +238,9 @@ abstract class Widget
 		{
 			if (c is child)
 			{
-				children = children[0 .. i] ~ children[i + 1 .. $];
+				children_ = children_[0 .. i] ~ children_[i + 1 .. $];
 				if (child !is null)
-					child.parent = null;
+					child.parent_ = null;
 				return;
 			}
 		}
@@ -221,18 +257,18 @@ abstract class Widget
 			return;
 		disposed_ = true;
 
-		foreach (child; children.dup)
+		foreach (child; children_.dup)
 			child.dispose();
-		children = null;
+		children_ = null;
 
-		if (parent !is null)
-			parent.removeChild(this);
+		if (parent_ !is null)
+			parent_.removeChild(this);
 
-		if (handle)
+		if (handle_)
 		{
-			unregisterWidget(handle);
-			DestroyWindow(handle);
-			handle = null;
+			unregisterWidget(handle_);
+			DestroyWindow(handle_);
+			handle_ = null;
 		}
 
 		GC.removeRoot(cast(void*) this);
@@ -261,4 +297,34 @@ abstract class Widget
 	{
 		return DefWindowProcW(handle, msg, wParam, lParam);
 	}
+}
+
+unittest
+{
+	// Rect <-> RECT conversion: a RECT is left/top/right/bottom; a Rect is
+	// x/y/width/height. fromRECT computes the extents and toRECT inverts it.
+	RECT r;
+	r.left = 10;
+	r.top = 20;
+	r.right = 110;
+	r.bottom = 70;
+
+	auto rect = Rect.fromRECT(r);
+	assert(rect == Rect(10, 20, 100, 50));
+
+	auto back = rect.toRECT();
+	assert(back.left == 10 && back.top == 20 && back.right == 110 && back.bottom == 70);
+
+	// Round-trips for any rectangle.
+	auto rt = Rect(3, 7, 40, 9);
+	auto rtBack = Rect.fromRECT(rt.toRECT());
+	assert(rtBack == rt);
+}
+
+unittest
+{
+	// Padding factory helpers.
+	assert(Padding.all(5) == Padding(5, 5, 5, 5));
+	assert(Padding.symmetric(8, 4) == Padding(8, 4, 8, 4));
+	assert(Padding.all(0) == Padding.init);
 }

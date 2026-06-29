@@ -12,6 +12,11 @@
 /* Application manifest: RT_MANIFEST (24) with the standard executable id (1). */
 1 24 "app.manifest"
 
+/* Application icon. Icon id 1 is the conventional application-icon id; Deft's
+   window class picks it up automatically (see platform/win32/init.d), and
+   Windows shows the lowest-id icon as the executable's Explorer icon. */
+1 ICON "deft.ico"
+
 /* Version information — read by screen readers (e.g. the JAWS version
    keystroke) and shown on the file's Details tab. */
 1 VERSIONINFO

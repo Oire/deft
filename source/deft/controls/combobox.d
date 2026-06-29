@@ -41,6 +41,9 @@ class ComboBox : Control
 	private ComboBoxStyle style_;
 	private bool editable_;
 
+	/// Keeps GC-allocated item data reachable; see `setItemData`.
+	private void*[] retainedData_;
+
 	/**
 	 * Create a combo box as a child of `parent`.
 	 *
@@ -93,10 +96,11 @@ class ComboBox : Control
 		SendMessageW(handle, CB_DELETESTRING, index, 0);
 	}
 
-	/// Remove all items.
+	/// Remove all items (and release any retained item data; see `setItemData`).
 	void clear()
 	{
 		SendMessageW(handle, CB_RESETCONTENT, 0, 0);
+		retainedData_ = null;
 	}
 
 	/// Return the selected item's index, or -1 (`CB_ERR`) if none is selected.
@@ -130,9 +134,18 @@ class ComboBox : Control
 		return fromWString(buf[0 .. got]);
 	}
 
-	/// Associate an opaque `data` pointer with the item at `index`.
+	/**
+	 * Associate an opaque `data` pointer with the item at `index`.
+	 *
+	 * The pointer is stored inside the native control, where the D garbage
+	 * collector cannot see it. To keep GC-allocated `data` from being collected
+	 * out from under the control, Deft also retains a reference internally for the
+	 * control's lifetime; the retained references are released by `clear()`.
+	 */
 	void setItemData(int index, void* data)
 	{
+		if (data !is null)
+			retainedData_ ~= data;
 		SendMessageW(handle, CB_SETITEMDATA, index, cast(LPARAM) data);
 	}
 

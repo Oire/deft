@@ -1,0 +1,198 @@
+# Russian translation for the Deft demo.
+# Copyright (C) 2026 Oire Software
+# This file is distributed under the same license as the deft-demo package.
+msgid ""
+msgstr ""
+"Project-Id-Version: deft-demo\n"
+"Report-Msgid-Bugs-To: ap@oire.me\n"
+"PO-Revision-Date: 2026-06-29 14:40+0200\n"
+"Last-Translator: Deft Demo <ap@oire.me>\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+msgid "&About"
+msgstr "&О программе"
+
+msgid "&Content:"
+msgstr "&Содержимое:"
+
+msgid "&Edit"
+msgstr "&Правка"
+
+msgid "&Expand"
+msgstr "&Развернуть"
+
+msgid "&File"
+msgstr "&Файл"
+
+msgid "&Help"
+msgstr "&Справка"
+
+msgid "&Input..."
+msgstr "&Ввод..."
+
+msgid "&Language"
+msgstr "&Язык"
+
+msgid "&New Note..."
+msgstr "&Создать заметку..."
+
+msgid "&Open Dialog..."
+msgstr "&Открыть диалог..."
+
+msgid "&Show"
+msgstr "&Показать"
+
+msgid "&Title:"
+msgstr "&Заголовок:"
+
+msgid "&View"
+msgstr "&Просмотр"
+
+msgid "About"
+msgstr "О программе"
+
+msgid "Basics"
+msgstr "Основы"
+
+msgid "Categories"
+msgstr "Категории"
+
+#, c-format
+msgid "Category: %s"
+msgstr "Категория: %s"
+
+#, c-format
+msgid "Checked: %s"
+msgstr "Отмечено: %s"
+
+msgid "Created"
+msgstr "Создано"
+
+msgid "Deft Widget Gallery"
+msgstr "Галерея виджетов Deft"
+
+msgid ""
+"Deft Widget Gallery\n"
+"A native UI framework for D."
+msgstr ""
+"Галерея виджетов Deft\n"
+"Нативный UI-фреймворк для D."
+
+msgid "E&xit"
+msgstr "В&ыход"
+
+msgid "Edit Note"
+msgstr "Редактировать заметку"
+
+msgid "Edit canceled"
+msgstr "Редактирование отменено"
+
+#, c-format
+msgid "Elapsed: %d s"
+msgstr "Прошло: %d с"
+
+msgid "Enable &feature"
+msgstr "Включить &функцию"
+
+msgid "Enter your &name:"
+msgstr "Введите ваше &имя:"
+
+msgid "Feature off"
+msgstr "Функция выключена"
+
+msgid "Feature on"
+msgstr "Функция включена"
+
+msgid "Fruit list"
+msgstr "Список фруктов"
+
+#, c-format
+msgid "Fruit: %s"
+msgstr "Фрукт: %s"
+
+msgid "Hello from Deft"
+msgstr "Привет от Deft"
+
+#, c-format
+msgid "Hello, %s"
+msgstr "Привет, %s"
+
+msgid "Lists"
+msgstr "Списки"
+
+msgid "Multi-line text..."
+msgstr "Многострочный текст..."
+
+msgid "New note"
+msgstr "Новая заметка"
+
+msgid "Note"
+msgstr "Заметка"
+
+msgid "Notes list"
+msgstr "Список заметок"
+
+msgid "Option &A"
+msgstr "Вариант &А"
+
+msgid "Option &B"
+msgstr "Вариант &Б"
+
+msgid "Preview off"
+msgstr "Предпросмотр выключен"
+
+msgid "Preview on"
+msgstr "Предпросмотр включён"
+
+msgid "Ready"
+msgstr "Готово"
+
+#, c-format
+msgid "Saved: %s"
+msgstr "Сохранено: %s"
+
+#, c-format
+msgid "Search: %s"
+msgstr "Поиск: %s"
+
+#, c-format
+msgid "Selected: %s"
+msgstr "Выбрано: %s"
+
+msgid "Show &Preview"
+msgstr "Показать &предпросмотр"
+
+msgid "Size"
+msgstr "Размер"
+
+msgid "Text style"
+msgstr "Стиль текста"
+
+msgid "Title"
+msgstr "Заголовок"
+
+#, c-format
+msgid "Unchecked: %s"
+msgstr "Снято: %s"
+
+msgid "Untitled"
+msgstr "Без названия"
+
+msgid "Updated"
+msgstr "Обновлено"
+
+#, c-format
+msgid "View: %s"
+msgstr "Просмотр: %s"
+
+#, c-format
+msgid "You activated: %s"
+msgstr "Вы активировали: %s"
+
+msgid "Your name"
+msgstr "Ваше имя"

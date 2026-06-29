@@ -1,0 +1,198 @@
+# Ukrainian translation for the Deft demo.
+# Copyright (C) 2026 Oire Software
+# This file is distributed under the same license as the deft-demo package.
+msgid ""
+msgstr ""
+"Project-Id-Version: deft-demo\n"
+"Report-Msgid-Bugs-To: ap@oire.me\n"
+"PO-Revision-Date: 2026-06-29 14:40+0200\n"
+"Last-Translator: Deft Demo <ap@oire.me>\n"
+"Language-Team: Ukrainian\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+msgid "&About"
+msgstr "&Про програму"
+
+msgid "&Content:"
+msgstr "&Вміст:"
+
+msgid "&Edit"
+msgstr "&Редагування"
+
+msgid "&Expand"
+msgstr "&Розгорнути"
+
+msgid "&File"
+msgstr "&Файл"
+
+msgid "&Help"
+msgstr "&Довідка"
+
+msgid "&Input..."
+msgstr "&Введення..."
+
+msgid "&Language"
+msgstr "&Мова"
+
+msgid "&New Note..."
+msgstr "&Створити нотатку..."
+
+msgid "&Open Dialog..."
+msgstr "&Відкрити діалог..."
+
+msgid "&Show"
+msgstr "&Показати"
+
+msgid "&Title:"
+msgstr "&Заголовок:"
+
+msgid "&View"
+msgstr "&Переглянути"
+
+msgid "About"
+msgstr "Про програму"
+
+msgid "Basics"
+msgstr "Основи"
+
+msgid "Categories"
+msgstr "Категорії"
+
+#, c-format
+msgid "Category: %s"
+msgstr "Категорія: %s"
+
+#, c-format
+msgid "Checked: %s"
+msgstr "Позначено: %s"
+
+msgid "Created"
+msgstr "Створено"
+
+msgid "Deft Widget Gallery"
+msgstr "Галерея віджетів Deft"
+
+msgid ""
+"Deft Widget Gallery\n"
+"A native UI framework for D."
+msgstr ""
+"Галерея віджетів Deft\n"
+"Нативний UI-фреймворк для D."
+
+msgid "E&xit"
+msgstr "Ви&йти"
+
+msgid "Edit Note"
+msgstr "Редагувати нотатку"
+
+msgid "Edit canceled"
+msgstr "Редагування скасовано"
+
+#, c-format
+msgid "Elapsed: %d s"
+msgstr "Минуло: %d с"
+
+msgid "Enable &feature"
+msgstr "Увімкнути &функцію"
+
+msgid "Enter your &name:"
+msgstr "Введіть ваше &ім'я:"
+
+msgid "Feature off"
+msgstr "Функцію вимкнено"
+
+msgid "Feature on"
+msgstr "Функцію ввімкнено"
+
+msgid "Fruit list"
+msgstr "Список фруктів"
+
+#, c-format
+msgid "Fruit: %s"
+msgstr "Фрукт: %s"
+
+msgid "Hello from Deft"
+msgstr "Привіт від Deft"
+
+#, c-format
+msgid "Hello, %s"
+msgstr "Привіт, %s"
+
+msgid "Lists"
+msgstr "Списки"
+
+msgid "Multi-line text..."
+msgstr "Багаторядковий текст..."
+
+msgid "New note"
+msgstr "Нова нотатка"
+
+msgid "Note"
+msgstr "Нотатка"
+
+msgid "Notes list"
+msgstr "Список нотаток"
+
+msgid "Option &A"
+msgstr "Варіант &А"
+
+msgid "Option &B"
+msgstr "Варіант &Б"
+
+msgid "Preview off"
+msgstr "Попередній перегляд вимкнено"
+
+msgid "Preview on"
+msgstr "Попередній перегляд увімкнено"
+
+msgid "Ready"
+msgstr "Готово"
+
+#, c-format
+msgid "Saved: %s"
+msgstr "Збережено: %s"
+
+#, c-format
+msgid "Search: %s"
+msgstr "Пошук: %s"
+
+#, c-format
+msgid "Selected: %s"
+msgstr "Вибрано: %s"
+
+msgid "Show &Preview"
+msgstr "Показати &попередній перегляд"
+
+msgid "Size"
+msgstr "Розмір"
+
+msgid "Text style"
+msgstr "Стиль тексту"
+
+msgid "Title"
+msgstr "Заголовок"
+
+#, c-format
+msgid "Unchecked: %s"
+msgstr "Знято: %s"
+
+msgid "Untitled"
+msgstr "Без назви"
+
+msgid "Updated"
+msgstr "Оновлено"
+
+#, c-format
+msgid "View: %s"
+msgstr "Перегляд: %s"
+
+#, c-format
+msgid "You activated: %s"
+msgstr "Ви активували: %s"
+
+msgid "Your name"
+msgstr "Ваше ім'я"

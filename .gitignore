@@ -36,3 +36,6 @@ docs/*.html
 
 # Code coverage
 *.lst
+
+# Backup copies
+*.bak

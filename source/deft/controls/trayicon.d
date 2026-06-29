@@ -8,7 +8,7 @@
  *
  * The icon sends its mouse notifications to the owner window as a private
  * application message; `Window` routes that message here via
- * `dispatchTrayMessage`. Call `destroy()` before the owner window is torn down —
+ * `dispatchTrayMessage`. Call `remove()` before the owner window is torn down —
  * a lingering tray icon can leave screen-reader focus in a bad state.
  */
 module deft.controls.trayicon;
@@ -146,9 +146,10 @@ class TrayIcon
 	/**
 	 * Remove the icon from the notification area.
 	 *
-	 * Call this before destroying the owner window. Idempotent.
+	 * Call this before destroying the owner window. Idempotent. (Named `remove`
+	 * rather than `destroy` to avoid shadowing druntime's built-in `destroy`.)
 	 */
-	void destroy()
+	void remove()
 	{
 		if (!added_)
 			return;
@@ -187,18 +188,4 @@ class TrayIcon
 			break;
 		}
 	}
-}
-
-/// Load an icon from the application's own resources by integer id.
-HICON loadIcon(int resourceId)
-{
-	auto resource = cast(LPCWSTR) cast(void*) cast(size_t) cast(ushort) resourceId;
-	return LoadIconW(GetModuleHandleW(null), resource);
-}
-
-/// Load an icon image from a `.ico` file on disk.
-HICON loadIconFromFile(string path)
-{
-	return cast(HICON) LoadImageW(null, path.toWStringz, IMAGE_ICON,
-		0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 }

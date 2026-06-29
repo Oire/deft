@@ -1,0 +1,275 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-29 14:37+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: C:\repos\Oire\deft\demo\source\app.d:201
+#: C:\repos\Oire\deft\demo\source\app.d:359
+msgid "&About"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:436
+msgid "&Content:"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:194
+#: C:\repos\Oire\deft\demo\source\app.d:369
+msgid "&Edit"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:287
+msgid "&Expand"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:193
+#: C:\repos\Oire\deft\demo\source\app.d:368
+msgid "&File"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:196
+#: C:\repos\Oire\deft\demo\source\app.d:371
+msgid "&Help"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:198
+#: C:\repos\Oire\deft\demo\source\app.d:316
+msgid "&Input..."
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:195
+#: C:\repos\Oire\deft\demo\source\app.d:370
+msgid "&Language"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:197
+#: C:\repos\Oire\deft\demo\source\app.d:312
+msgid "&New Note..."
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:78
+#: C:\repos\Oire\deft\demo\source\app.d:182
+msgid "&Open Dialog..."
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:384
+msgid "&Show"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:434
+msgid "&Title:"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:268
+msgid "&View"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:363
+msgid "About"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:97
+#: C:\repos\Oire\deft\demo\source\app.d:177
+msgid "Basics"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:124
+msgid "Categories"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:282
+#, c-format
+msgid "Category: %s"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:141
+#, c-format
+msgid "Checked: %s"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:106
+#: C:\repos\Oire\deft\demo\source\app.d:189
+msgid "Created"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:174
+#: C:\repos\Oire\deft\demo\source\app.d:392
+msgid "Deft Widget Gallery"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:362
+msgid ""
+"Deft Widget Gallery\n"
+"A native UI framework for D."
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:199
+#: C:\repos\Oire\deft\demo\source\app.d:326
+#: C:\repos\Oire\deft\demo\source\app.d:391
+msgid "E&xit"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:420
+msgid "Edit Note"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:450
+msgid "Edit canceled"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:166
+#, c-format
+msgid "Elapsed: %d s"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:81
+#: C:\repos\Oire\deft\demo\source\app.d:183
+msgid "Enable &feature"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:318
+msgid "Enter your &name:"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:305
+msgid "Feature off"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:305
+msgid "Feature on"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:131
+msgid "Fruit list"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:301
+#, c-format
+msgid "Fruit: %s"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:72
+#: C:\repos\Oire\deft\demo\source\app.d:180
+msgid "Hello from Deft"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:320
+#, c-format
+msgid "Hello, %s"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:155
+#: C:\repos\Oire\deft\demo\source\app.d:178
+msgid "Lists"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:93
+msgid "Multi-line text..."
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:313
+msgid "New note"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:263
+msgid "Note"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:113
+msgid "Notes list"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:84
+#: C:\repos\Oire\deft\demo\source\app.d:184
+msgid "Option &A"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:85
+#: C:\repos\Oire\deft\demo\source\app.d:185
+msgid "Option &B"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:335
+msgid "Preview off"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:335
+msgid "Preview on"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:175
+msgid "Ready"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:448
+#, c-format
+msgid "Saved: %s"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:254
+#, c-format
+msgid "Search: %s"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:258
+#, c-format
+msgid "Selected: %s"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:200
+#: C:\repos\Oire\deft\demo\source\app.d:331
+msgid "Show &Preview"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:151
+msgid "Size"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:139
+msgid "Text style"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:104
+#: C:\repos\Oire\deft\demo\source\app.d:187
+msgid "Title"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:141
+#, c-format
+msgid "Unchecked: %s"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:435
+msgid "Untitled"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:105
+#: C:\repos\Oire\deft\demo\source\app.d:188
+msgid "Updated"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:272
+#, c-format
+msgid "View: %s"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:262
+#, c-format
+msgid "You activated: %s"
+msgstr ""
+
+#: C:\repos\Oire\deft\demo\source\app.d:318
+msgid "Your name"
+msgstr ""

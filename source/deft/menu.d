@@ -154,6 +154,8 @@ class Menu
 	private HMENU handle_;
 	private MenuItem*[] items_;
 	private Menu[] submenus_;
+	private bool ownsHandle_ = true;
+	private bool disposed_;
 
 	/// Create an empty popup menu.
 	this()
@@ -204,6 +206,9 @@ class Menu
 	void appendSubmenu(Menu submenu, string label)
 	{
 		submenus_ ~= submenu;
+		// The parent now owns the submenu's HMENU: DestroyMenu on this menu frees
+		// its submenus recursively, so the submenu must not free its own handle.
+		submenu.ownsHandle_ = false;
 		AppendMenuW(handle_, MF_POPUP, cast(UINT_PTR) submenu.handle_,
 			label.toWStringz);
 	}
@@ -238,6 +243,27 @@ class Menu
 			MF_BYCOMMAND | (enabled ? MF_ENABLED : MF_GRAYED));
 	}
 
+	/**
+	 * Change the visible label of item `id` (its accelerator text is preserved),
+	 * searching this menu and its submenus. Returns `true` if the item was found.
+	 * Useful for retranslating menus when the UI language changes at runtime.
+	 */
+	bool setItemText(int id, string label)
+	{
+		foreach (it; items_)
+			if (it.id == id)
+			{
+				it.label = label;
+				ModifyMenuW(handle_, id, MF_BYCOMMAND | MF_STRING,
+					cast(UINT_PTR) id, labelWithAccelerator(*it).toWStringz);
+				return true;
+			}
+		foreach (sub; submenus_)
+			if (sub.setItemText(id, label))
+				return true;
+		return false;
+	}
+
 	/// Append every accelerator-bearing item in this menu tree to `accels`.
 	private void collectAccelerators(ref ACCEL[] accels)
 	{
@@ -256,6 +282,38 @@ class Menu
 		foreach (sub; submenus_)
 			sub.collectAccelerators(accels);
 	}
+
+	/// Remove this menu's (and its submenus') items from the command registry.
+	private void unregisterCommands()
+	{
+		foreach (it; items_)
+			g_menuCommands.remove(it.id);
+		foreach (sub; submenus_)
+			sub.unregisterCommands();
+	}
+
+	/**
+	 * Release the menu's native resources: drop its items from the command
+	 * registry and destroy its `HMENU` (which frees any submenu handles too).
+	 *
+	 * Call this on a standalone context menu (one shown with `showPopupMenu`) when
+	 * you are finished with it — an app that rebuilds context menus per invocation
+	 * would otherwise leak an `HMENU` and command-registry entries each time. A
+	 * menu attached to a `MenuBar` or as a submenu is owned by its parent and
+	 * freed when the parent is disposed; calling `dispose` on it is still safe.
+	 * Idempotent.
+	 */
+	void dispose()
+	{
+		if (disposed_)
+			return;
+		disposed_ = true;
+
+		unregisterCommands();
+		if (ownsHandle_ && handle_ !is null)
+			DestroyMenu(handle_);
+		handle_ = null;
+	}
 }
 
 /**
@@ -268,6 +326,7 @@ class MenuBar
 {
 	private HMENU handle_;
 	private Menu[] menus_;
+	private bool disposed_;
 
 	/// Create an empty menu bar.
 	this()
@@ -285,6 +344,8 @@ class MenuBar
 	void append(Menu menu, string label)
 	{
 		menus_ ~= menu;
+		// The bar owns the menu's HMENU now (DestroyMenu on the bar frees it).
+		menu.ownsHandle_ = false;
 		AppendMenuW(handle_, MF_POPUP, cast(UINT_PTR) menu.handle,
 			label.toWStringz);
 	}
@@ -321,6 +382,28 @@ class MenuBar
 	}
 
 	/**
+	 * Change the label of item `id` anywhere in the bar (accelerator preserved).
+	 * Call `DrawMenuBar(window.handle)` afterward if a top-level item changed.
+	 */
+	void setItemText(int id, string label)
+	{
+		foreach (m; menus_)
+			if (m.setItemText(id, label))
+				return;
+	}
+
+	/**
+	 * Change the title of the top-level menu at `index` (e.g. retranslating
+	 * "File"/"Edit"). Call `DrawMenuBar(window.handle)` afterward to repaint.
+	 */
+	void setMenuTitle(int index, string label)
+	{
+		if (index >= 0 && index < menus_.length)
+			ModifyMenuW(handle_, index, MF_BYPOSITION | MF_POPUP,
+				cast(UINT_PTR) menus_[index].handle, label.toWStringz);
+	}
+
+	/**
 	 * Build an accelerator table from every accelerator-bearing item in the bar.
 	 * Returns null when there are no accelerators.
 	 */
@@ -332,6 +415,28 @@ class MenuBar
 		if (accels.length == 0)
 			return null;
 		return CreateAcceleratorTableW(accels.ptr, cast(int) accels.length);
+	}
+
+	/**
+	 * Release the menu bar's native resources: drop every item from the command
+	 * registry and destroy the bar's `HMENU` (which frees its menus' handles too).
+	 *
+	 * Call this only when the bar is no longer attached to a live window — a menu
+	 * assigned to a window is destroyed automatically when the window is destroyed,
+	 * so disposing it again would be a double free. Use it when you build a bar you
+	 * never attach, or replace a window's menu bar at runtime. Idempotent.
+	 */
+	void dispose()
+	{
+		if (disposed_)
+			return;
+		disposed_ = true;
+
+		foreach (m; menus_)
+			m.unregisterCommands();
+		if (handle_ !is null)
+			DestroyMenu(handle_);
+		handle_ = null;
 	}
 }
 
@@ -611,4 +716,33 @@ unittest
 	auto b = nextMenuId();
 	assert(b == a + 1);
 	assert(a >= 30_000);
+}
+
+unittest
+{
+	// buildAcceleratorTable collects one ACCEL per accelerator-bearing item across
+	// the whole bar (including submenus) and ignores items without one. These APIs
+	// (CreateMenu/AppendMenu/CreateAcceleratorTable) need no window or message loop.
+	auto bar = new MenuBar();
+	auto file = new Menu();
+	file.append(MenuItem(0, "&New", "Ctrl+N"));
+	file.append(MenuItem(0, "&Open", "Ctrl+O"));
+	file.append(MenuItem(0, "&Close")); // no accelerator
+	auto sub = new Menu();
+	sub.append(MenuItem(0, "&Recent", "Ctrl+R"));
+	file.appendSubmenu(sub, "Recen&t");
+	bar.append(file, "&File");
+
+	HACCEL table = bar.buildAcceleratorTable();
+	assert(table !is null);
+	// CopyAcceleratorTableW with a null buffer returns the entry count.
+	assert(CopyAcceleratorTableW(table, null, 0) == 3);
+	DestroyAcceleratorTable(table);
+
+	// A bar with no accelerator-bearing items yields a null table.
+	auto plain = new MenuBar();
+	auto edit = new Menu();
+	edit.append(MenuItem(0, "&Undo"));
+	plain.append(edit, "&Edit");
+	assert(plain.buildAcceleratorTable() is null);
 }

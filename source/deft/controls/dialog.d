@@ -28,6 +28,7 @@ import deft.controls.button : Button;
 import deft.controls.control : routeCommand, routeNotify;
 import deft.controls.label : Label;
 import deft.controls.textbox : TextBox, TextBoxStyle;
+import deft.i18n : tr;
 import deft.layout : HBox, Sizer, VBox;
 import deft.util.strings;
 import deft.widget;
@@ -88,11 +89,11 @@ class Dialog : Widget
 			? GetAncestor(parent.handle, GA_ROOT) : null;
 		width_ = width;
 		height_ = height;
-		this.parent = parent;
+		this.parent_ = parent;
 
 		auto template_ = buildDialogTemplate(title, width, height);
 
-		handle = CreateDialogIndirectParamW(
+		handle_ = CreateDialogIndirectParamW(
 			hInstance(),
 			cast(LPCDLGTEMPLATE) template_.ptr,
 			parentHandle_,
@@ -124,6 +125,11 @@ class Dialog : Widget
 	 * each wired to dismiss the dialog with the matching `DialogResult`. The
 	 * OK/Yes button becomes the dialog's default push button (activated by Enter
 	 * via the native dialog manager).
+	 *
+	 * Button captions are localized automatically: an app translation (looked up
+	 * via `tr` under the keys `deft.button.ok` / `.cancel` / `.yes` / `.no`) wins;
+	 * otherwise the operating system's own localized text is used, so OK/Cancel/
+	 * Yes/No match the user's Windows language even with no catalog installed.
 	 */
 	void addStandardButtons(ButtonSet set)
 	{
@@ -134,15 +140,15 @@ class Dialog : Widget
 		final switch (set)
 		{
 		case ButtonSet.ok:
-			addButton(row, "OK", DialogResult.ok, true);
+			addButton(row, okText(), DialogResult.ok, true);
 			break;
 		case ButtonSet.okCancel:
-			addButton(row, "OK", DialogResult.ok, true);
-			addButton(row, "Cancel", DialogResult.cancel, false);
+			addButton(row, okText(), DialogResult.ok, true);
+			addButton(row, cancelText(), DialogResult.cancel, false);
 			break;
 		case ButtonSet.yesNo:
-			addButton(row, "Yes", DialogResult.yes, true);
-			addButton(row, "No", DialogResult.no, false);
+			addButton(row, yesText(), DialogResult.yes, true);
+			addButton(row, noText(), DialogResult.no, false);
 			break;
 		}
 
@@ -412,4 +418,45 @@ string showInputDialog(Widget parent, string title, string prompt,
 	if (dialog.showModal() == DialogResult.ok)
 		return input.getText();
 	return null;
+}
+
+// Standard-button caption ids in user32.dll's localized string table
+// (800 = OK, 801 = Cancel, 805 = &Yes, 806 = &No), the same strings the native
+// message box uses — so Deft's custom dialog buttons match the OS language.
+private enum uint sidOK = 800;
+private enum uint sidCancel = 801;
+private enum uint sidYes = 805;
+private enum uint sidNo = 806;
+
+private string okText() { return standardText("deft.button.ok", "OK", sidOK); }
+private string cancelText() { return standardText("deft.button.cancel", "Cancel", sidCancel); }
+private string yesText() { return standardText("deft.button.yes", "&Yes", sidYes); }
+private string noText() { return standardText("deft.button.no", "&No", sidNo); }
+
+/**
+ * Resolve a standard button's caption. Precedence: an application translation
+ * (via `tr` under `key`) wins; otherwise the operating system's own localized
+ * string; otherwise the English default. So the buttons follow the user's
+ * Windows language with no catalog, yet an app can still override them.
+ */
+private string standardText(string key, string english, uint sysId)
+{
+	auto translated = tr(key);
+	if (translated != key)
+		return translated;
+	auto os = loadSystemString(sysId);
+	return os.length != 0 ? os : english;
+}
+
+/// Load a localized string from user32.dll's resource table (empty on failure).
+private string loadSystemString(uint id)
+{
+	HMODULE user32 = GetModuleHandleW("user32.dll"w.ptr);
+	if (user32 is null)
+		return "";
+	wchar[256] buf;
+	int n = LoadStringW(user32, id, buf.ptr, cast(int) buf.length);
+	if (n <= 0)
+		return "";
+	return fromWString(buf[0 .. n]);
 }

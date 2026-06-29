@@ -94,7 +94,7 @@ final class SizerItem
 	private Sizer sizer_;
 	private int proportion_;
 	private Padding padding_;
-	private Size minSize_;
+	private Size fixedSize_;
 	private HAlign halign_ = HAlign.fill;
 	private VAlign valign_ = VAlign.fill;
 
@@ -157,18 +157,23 @@ final class SizerItem
 		return this;
 	}
 
-	/// Override the child's content size (wins over its preferred size).
-	SizerItem minSize(Size size) return
+	/**
+	 * Override the child's content size with a fixed size that wins over its
+	 * preferred size. This is an exact override, not a lower bound — the name says
+	 * "fixed," not "minimum." Prefer `autoSize`/`stretch` and reach for this only
+	 * for things with an inherently fixed extent (an icon, a fixed-width sidebar).
+	 */
+	SizerItem fixedSize(Size size) return
 	{
-		minSize_ = size;
+		fixedSize_ = size;
 		return this;
 	}
 
 	/// The child's content size, before padding.
 	private Size contentSize()
 	{
-		if (minSize_ != Size.init)
-			return minSize_;
+		if (fixedSize_ != Size.init)
+			return fixedSize_;
 		if (widget_ !is null)
 			return widget_.getPreferredSize();
 		if (sizer_ !is null)

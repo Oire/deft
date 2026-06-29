@@ -9,7 +9,8 @@
 	"dependencies": {
 		"deft": {
 			"path": "../"
-		}
+		},
+		"mofile": "~>0.2.1"
 	},
 	"preGenerateCommands-windows": [
 		"powershell -NoProfile -ExecutionPolicy Bypass -File \"$PACKAGE_DIR/make-res.ps1\""

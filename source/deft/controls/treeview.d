@@ -34,6 +34,9 @@ struct TreeItem
 /// A hierarchical tree of selectable, expandable nodes.
 class TreeView : Control
 {
+	/// Keeps GC-allocated item data reachable; see `setItemData`.
+	private void*[] retainedData_;
+
 	/// Fired when the selected node changes, carrying the newly selected item.
 	Event!(TreeItem) onSelectionChanged;
 
@@ -83,10 +86,11 @@ class TreeView : Control
 		return insert(parent.handle, text);
 	}
 
-	/// Remove every node from the tree.
+	/// Remove every node (and release any retained item data; see `setItemData`).
 	void clear()
 	{
 		SendMessageW(handle, TVM_DELETEITEM, 0, cast(LPARAM) TVI_ROOT);
+		retainedData_ = null;
 	}
 
 	/// Get the currently selected node (a null `TreeItem` if none).
@@ -114,19 +118,37 @@ class TreeView : Control
 	/// Get the caption text of `item`.
 	string getItemText(TreeItem item)
 	{
-		auto buf = new wchar[512];
-		TVITEMW tv;
-		tv.mask = TVIF_TEXT;
-		tv.hItem = item.handle;
-		tv.pszText = buf.ptr;
-		tv.cchTextMax = cast(int) buf.length;
-		SendMessageW(handle, TVM_GETITEMW, 0, cast(LPARAM)&tv);
-		return fromWStringz(buf.ptr);
+		// Grow the buffer until the text is no longer truncated: the control fills
+		// up to cchTextMax-1 chars, so a result that long may have been clipped.
+		for (int cap = 256;; cap *= 2)
+		{
+			auto buf = new wchar[cap];
+			TVITEMW tv;
+			tv.mask = TVIF_TEXT;
+			tv.hItem = item.handle;
+			tv.pszText = buf.ptr;
+			tv.cchTextMax = cap;
+			SendMessageW(handle, TVM_GETITEMW, 0, cast(LPARAM)&tv);
+			size_t len = 0;
+			while (len < cap && buf[len] != '\0')
+				++len;
+			if (len < cap - 1 || cap >= 1 << 16)
+				return fromWString(buf[0 .. len]);
+		}
 	}
 
-	/// Associate an opaque `data` pointer with `item`.
+	/**
+	 * Associate an opaque `data` pointer with `item`.
+	 *
+	 * The pointer is stored inside the native control, where the D garbage
+	 * collector cannot see it. To keep GC-allocated `data` from being collected
+	 * out from under the control, Deft also retains a reference internally for the
+	 * control's lifetime; the retained references are released by `clear()`.
+	 */
 	void setItemData(TreeItem item, void* data)
 	{
+		if (data !is null)
+			retainedData_ ~= data;
 		TVITEMW tv;
 		tv.mask = TVIF_PARAM;
 		tv.hItem = item.handle;

@@ -55,8 +55,14 @@ class Application
 	/// The process-wide application instance (created on first access).
 	static Application instance()
 	{
-		if (instance_ is null)
-			instance_ = new Application();
+		// Guard the lazy init so two threads racing for the first access cannot
+		// each construct an instance. (UI work is single-threaded, but the
+		// singleton may be touched from a worker thread via CommandQueue.)
+		synchronized (Application.classinfo)
+		{
+			if (instance_ is null)
+				instance_ = new Application();
+		}
 		return instance_;
 	}
 

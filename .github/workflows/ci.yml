@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.compiler }} on Windows
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - dmd-latest
+          - ldc-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install D (${{ matrix.compiler }})
+        uses: dlang-community/setup-dlang@v2
+        with:
+          compiler: ${{ matrix.compiler }}
+
+      - name: Build library (debug)
+        run: dub build
+
+      - name: Build library (release)
+        run: dub build -b release
+
+      - name: Run unit tests
+        run: dub test
+
+      - name: Build demo
+        working-directory: demo
+        run: dub build -b release

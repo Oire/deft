@@ -76,13 +76,20 @@ class CheckListBox : Control
 	/// Return the text of the item at `index`.
 	string getItemText(int index)
 	{
-		auto buf = new wchar[512];
-		LVITEMW item;
-		item.iSubItem = 0;
-		item.pszText = buf.ptr;
-		item.cchTextMax = cast(int) buf.length;
-		SendMessageW(handle, LVM_GETITEMTEXTW, index, cast(LPARAM)&item);
-		return fromWStringz(buf.ptr);
+		// LVM_GETITEMTEXTW returns the number of characters copied; a result that
+		// fills the buffer (cap-1) may have been truncated, so grow and retry.
+		for (int cap = 256;; cap *= 2)
+		{
+			auto buf = new wchar[cap];
+			LVITEMW item;
+			item.iSubItem = 0;
+			item.pszText = buf.ptr;
+			item.cchTextMax = cap;
+			int got = cast(int) SendMessageW(handle, LVM_GETITEMTEXTW, index,
+				cast(LPARAM)&item);
+			if (got < cap - 1 || cap >= 1 << 16)
+				return fromWString(buf[0 .. got]);
+		}
 	}
 
 	/// Return whether the item at `index` is checked.

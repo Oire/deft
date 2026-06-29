@@ -1,0 +1,198 @@
+# German translation for the Deft demo.
+# Copyright (C) 2026 Oire Software
+# This file is distributed under the same license as the deft-demo package.
+msgid ""
+msgstr ""
+"Project-Id-Version: deft-demo\n"
+"Report-Msgid-Bugs-To: ap@oire.me\n"
+"PO-Revision-Date: 2026-06-29 14:40+0200\n"
+"Last-Translator: Deft Demo <ap@oire.me>\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "&About"
+msgstr "&Über"
+
+msgid "&Content:"
+msgstr "&Inhalt:"
+
+msgid "&Edit"
+msgstr "&Bearbeiten"
+
+msgid "&Expand"
+msgstr "&Erweitern"
+
+msgid "&File"
+msgstr "&Datei"
+
+msgid "&Help"
+msgstr "&Hilfe"
+
+msgid "&Input..."
+msgstr "&Eingabe..."
+
+msgid "&Language"
+msgstr "&Sprache"
+
+msgid "&New Note..."
+msgstr "&Neue Notiz..."
+
+msgid "&Open Dialog..."
+msgstr "&Dialog öffnen..."
+
+msgid "&Show"
+msgstr "&Anzeigen"
+
+msgid "&Title:"
+msgstr "&Titel:"
+
+msgid "&View"
+msgstr "&Ansehen"
+
+msgid "About"
+msgstr "Über"
+
+msgid "Basics"
+msgstr "Grundlagen"
+
+msgid "Categories"
+msgstr "Kategorien"
+
+#, c-format
+msgid "Category: %s"
+msgstr "Kategorie: %s"
+
+#, c-format
+msgid "Checked: %s"
+msgstr "Aktiviert: %s"
+
+msgid "Created"
+msgstr "Erstellt"
+
+msgid "Deft Widget Gallery"
+msgstr "Deft-Widget-Galerie"
+
+msgid ""
+"Deft Widget Gallery\n"
+"A native UI framework for D."
+msgstr ""
+"Deft-Widget-Galerie\n"
+"Ein natives UI-Framework für D."
+
+msgid "E&xit"
+msgstr "&Beenden"
+
+msgid "Edit Note"
+msgstr "Notiz bearbeiten"
+
+msgid "Edit canceled"
+msgstr "Bearbeitung abgebrochen"
+
+#, c-format
+msgid "Elapsed: %d s"
+msgstr "Vergangen: %d s"
+
+msgid "Enable &feature"
+msgstr "&Funktion aktivieren"
+
+msgid "Enter your &name:"
+msgstr "Geben Sie Ihren &Namen ein:"
+
+msgid "Feature off"
+msgstr "Funktion aus"
+
+msgid "Feature on"
+msgstr "Funktion ein"
+
+msgid "Fruit list"
+msgstr "Obstliste"
+
+#, c-format
+msgid "Fruit: %s"
+msgstr "Obst: %s"
+
+msgid "Hello from Deft"
+msgstr "Hallo von Deft"
+
+#, c-format
+msgid "Hello, %s"
+msgstr "Hallo, %s"
+
+msgid "Lists"
+msgstr "Listen"
+
+msgid "Multi-line text..."
+msgstr "Mehrzeiliger Text..."
+
+msgid "New note"
+msgstr "Neue Notiz"
+
+msgid "Note"
+msgstr "Notiz"
+
+msgid "Notes list"
+msgstr "Notizliste"
+
+msgid "Option &A"
+msgstr "Option &A"
+
+msgid "Option &B"
+msgstr "Option &B"
+
+msgid "Preview off"
+msgstr "Vorschau aus"
+
+msgid "Preview on"
+msgstr "Vorschau ein"
+
+msgid "Ready"
+msgstr "Bereit"
+
+#, c-format
+msgid "Saved: %s"
+msgstr "Gespeichert: %s"
+
+#, c-format
+msgid "Search: %s"
+msgstr "Suche: %s"
+
+#, c-format
+msgid "Selected: %s"
+msgstr "Ausgewählt: %s"
+
+msgid "Show &Preview"
+msgstr "&Vorschau anzeigen"
+
+msgid "Size"
+msgstr "Größe"
+
+msgid "Text style"
+msgstr "Textstil"
+
+msgid "Title"
+msgstr "Titel"
+
+#, c-format
+msgid "Unchecked: %s"
+msgstr "Deaktiviert: %s"
+
+msgid "Untitled"
+msgstr "Unbenannt"
+
+msgid "Updated"
+msgstr "Aktualisiert"
+
+#, c-format
+msgid "View: %s"
+msgstr "Ansicht: %s"
+
+#, c-format
+msgid "You activated: %s"
+msgstr "Sie haben aktiviert: %s"
+
+msgid "Your name"
+msgstr "Ihr Name"

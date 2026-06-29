@@ -68,6 +68,9 @@ class ListView : Control
 {
 	private int columnCount_;
 
+	/// Keeps GC-allocated item data reachable; see `setItemData`.
+	private void*[] retainedData_;
+
 	/// Fired when the selected row changes; argument is the new selected index.
 	Event!(int) onSelectionChanged;
 	/// Fired when a row is activated (double-click or Enter); argument is the row index.
@@ -115,6 +118,15 @@ class ListView : Control
 
 		SendMessageW(handle, LVM_INSERTCOLUMNW, columnCount_, cast(LPARAM)&col);
 		return columnCount_++;
+	}
+
+	/// Change the header text of column `col` (e.g. when the UI language changes).
+	void setColumnTitle(int col, string title)
+	{
+		LVCOLUMNW c;
+		c.mask = LVCF_TEXT;
+		c.pszText = cast(LPWSTR) title.toWStringz;
+		SendMessageW(handle, LVM_SETCOLUMNW, col, cast(LPARAM)&c);
 	}
 
 	/// Set the pixel width of column `col`. For autosizing, use `autoSizeColumn`.
@@ -175,10 +187,11 @@ class ListView : Control
 		return row;
 	}
 
-	/// Remove all rows.
+	/// Remove all rows (and release any retained item data; see `setItemData`).
 	void clear()
 	{
 		SendMessageW(handle, LVM_DELETEALLITEMS, 0, 0);
+		retainedData_ = null;
 	}
 
 	/// Return the number of rows.
@@ -211,18 +224,35 @@ class ListView : Control
 	/// Return the text of the cell at the given `row` and `col`.
 	string getItemText(int row, int col)
 	{
-		auto buf = new wchar[512];
-		LVITEMW item;
-		item.iSubItem = col;
-		item.pszText = buf.ptr;
-		item.cchTextMax = cast(int) buf.length;
-		SendMessageW(handle, LVM_GETITEMTEXTW, row, cast(LPARAM)&item);
-		return fromWStringz(buf.ptr);
+		// LVM_GETITEMTEXTW returns the number of characters copied; a result that
+		// fills the buffer (cap-1) may have been truncated, so grow and retry.
+		for (int cap = 256;; cap *= 2)
+		{
+			auto buf = new wchar[cap];
+			LVITEMW item;
+			item.iSubItem = col;
+			item.pszText = buf.ptr;
+			item.cchTextMax = cap;
+			int got = cast(int) SendMessageW(handle, LVM_GETITEMTEXTW, row,
+				cast(LPARAM)&item);
+			if (got < cap - 1 || cap >= 1 << 16)
+				return fromWString(buf[0 .. got]);
+		}
 	}
 
-	/// Associate an opaque user pointer with the row at `index`.
+	/**
+	 * Associate an opaque user pointer with the row at `index`.
+	 *
+	 * The pointer is stored inside the native control, where the D garbage
+	 * collector cannot see it. To keep GC-allocated `data` from being collected
+	 * out from under the control, Deft also retains a reference internally for the
+	 * control's lifetime; the retained references are released by `clear()`. (The
+	 * native control owns the canonical copy returned by `getItemData`.)
+	 */
 	void setItemData(int index, void* data)
 	{
+		if (data !is null)
+			retainedData_ ~= data;
 		LVITEMW item;
 		item.mask = LVIF_PARAM;
 		item.iItem = index;

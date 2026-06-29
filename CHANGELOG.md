@@ -91,5 +91,5 @@ First milestone: the core framework infrastructure (plan 001). Win32 only.
 - Project documentation: `README.md`, `CLAUDE.md`, this changelog, and
   `.editorconfig`.
 
-[Unreleased]: https://example.com/deft/compare/v0.1.0-alpha...HEAD
-[0.1.0-alpha]: https://example.com/deft/releases/tag/v0.1.0-alpha
+[Unreleased]: https://github.com/Oire/deft/compare/v0.1.0-alpha...HEAD
+[0.1.0-alpha]: https://github.com/Oire/deft/releases/tag/v0.1.0-alpha

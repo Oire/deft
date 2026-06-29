@@ -27,6 +27,10 @@ On Windows the required Win32 bindings come from `core.sys.windows` in druntime 
 
 ## Installation
 
+> **Not yet published to the [dub registry](https://code.dlang.org).** Until the
+> first registry release, use a path or git dependency (see below); `dub add deft`
+> and the version-range form will work once it's published.
+
 Add Deft to your project with dub:
 
 ```sh
@@ -135,7 +139,7 @@ In a `Grid`, the column/row analog is `GridTrack.autoSize` (fit content, like `f
 A few practices follow from this:
 
 - **One stretchy child per box.** Make natural-size children `fixed()` and let *one* region `stretch()`. If you can state "which one thing grows," the window is correct at any size with nothing left to eyeball.
-- **Prefer `autoSize`/`percent` over `pixels` and `minSize`.** The fixed-pixel forms reintroduce magic numbers you can't sanity-check by feel. Reserve them for things with an inherently fixed size (an icon, a fixed-width sidebar); default to letting content or slack decide.
+- **Prefer `autoSize`/`percent` over `pixels` and `fixedSize`.** The fixed-pixel forms reintroduce magic numbers you can't sanity-check by feel. Reserve them for things with an inherently fixed size (an icon, a fixed-width sidebar); default to letting content or slack decide.
 - **Set spacing once, as a constant.** Pick one gap (e.g. 8) and reuse it via `setSpacing` / `Padding.all` for consistent, structural breathing room.
 - **Add children in reading order.** A sizer never reorders its children, so the order you call `add()` is the order Tab visits and a screen reader reads. Building each box in reading order makes "correct layout" and "correct tab order" the same act.
 
@@ -179,7 +183,7 @@ The public surface is re-exported from the `deft` package, so `import deft;` is 
 | Module | Responsibility |
 |--------|----------------|
 | `deft.app` | `Application` singleton — process init (common controls, COM, DPI awareness) and the message loop (with accelerator translation). |
-| `deft.window` | `Window` — top-level windows, `onClose`/`onResize`, default-button handling, root sizer, menu/status-bar/timer/tray wiring. |
+| `deft.window` | `Window` — top-level windows, `onClose`/`onResize`, default-button handling, icon (`setIcon`) and minimum-size, root sizer, menu/status-bar/timer/tray wiring. |
 | `deft.widget` | `Widget` base class and the `Rect` / `Size` / `Padding` geometry types. |
 | `deft.events` | `Event!(T...)` multicast delegates and event-argument types. |
 | `deft.layout` | `Sizer` / `HBox` / `VBox` box layout and `Grid` table layout, with a fluent placement API (`SizerItem`/`GridItem`) and per-cell `HAlign`/`VAlign` alignment. |
@@ -212,11 +216,13 @@ Deft uses native controls, so MSAA/IAccessible accessibility — the API JAWS an
 
 > Standalone static text (a decorative label not attached to a control) is intentionally **not** announced — that matches native Win32 behavior. A static is announced when it labels a control (created immediately before it in z-order) or when reached with the screen-reader cursor.
 
+For a full checklist that maps each accessibility behavior to its location in the source, see [ACCESSIBILITY.md](ACCESSIBILITY.md).
+
 ## Windows resources (manifest + version info)
 
 A polished GUI app should embed an application manifest (ComCtl32 v6 themed controls + DPI awareness) and version information (read by screen readers and shown on the file's Details tab). The demo shows the recommended pattern:
 
-- `demo/app.rc` declares both the manifest and a `VERSIONINFO` block, using numeric constants so `rc.exe` needs **no** SDK include path.
+- `demo/app.rc` declares the manifest, a `VERSIONINFO` block, and an application **icon** (`1 ICON "deft.ico"`), using numeric constants so `rc.exe` needs **no** SDK include path. Deft's window class picks up icon resource id 1 automatically (so the window, taskbar and Alt+Tab all show it); `Window.setIcon` can override it per window.
 - `demo/make-res.ps1` (a dub `preGenerateCommands` step) locates `rc.exe` via `PATH` or the Windows SDK and compiles `app.rc` → `app.res`. The compiled `app.res` is committed too, so a fresh checkout builds even without the SDK.
 - `demo/dub.json` links `app.res` via `sourceFiles-windows` and sets `/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup` — a windowed app (no console) that keeps an ordinary `int main()`.
 

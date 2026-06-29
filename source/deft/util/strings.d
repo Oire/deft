@@ -22,12 +22,11 @@ import core.sys.windows.winnls : CP_UTF8, MultiByteToWideChar, WideCharToMultiBy
  */
 const(wchar)* toWStringz(string s) @trusted
 {
+	// Shared, immutable terminator for the common empty-string case — every empty
+	// control caption, tooltip, etc. would otherwise allocate a fresh wchar[1].
+	static immutable wchar[1] emptyWz = ['\0'];
 	if (s.length == 0)
-	{
-		auto empty = new wchar[1];
-		empty[0] = '\0';
-		return empty.ptr;
-	}
+		return emptyWz.ptr;
 
 	int needed = MultiByteToWideChar(CP_UTF8, 0, s.ptr, cast(int) s.length, null, 0);
 	auto buf = new wchar[needed + 1];
