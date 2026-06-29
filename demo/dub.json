@@ -18,8 +18,12 @@
 	"sourceFiles-windows": [
 		"app.res"
 	],
-	"lflags-windows": [
+	"lflags-windows-dmd": [
 		"/SUBSYSTEM:WINDOWS",
 		"/ENTRY:mainCRTStartup"
+	],
+	"lflags-windows-ldc": [
+		"/SUBSYSTEM:WINDOWS",
+		"/ENTRY:wmainCRTStartup"
 	]
 }
