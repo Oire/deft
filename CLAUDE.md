@@ -62,10 +62,18 @@ Never redirect to a null device (`/dev/null`, `>nul`, `nul`). A pre-tool hook bl
 - Commit/push only when asked. If on `master`, branch first.
 - End commit messages with the `Co-Authored-By` trailer.
 
+### Releases (versioning discipline)
+
+dub derives a package's version from its **git tags** — there is no `version` field in `dub.json`. So a release is not real until it is tagged, and an untagged repo resolves to `~master`/`0.0.0` for consumers. The discipline:
+
+- **Tag every release.** Cut an annotated tag (`git tag -a vX.Y.Z -m "…"`) and push it (`git push origin vX.Y.Z`). The tag name is `v`-prefixed; the CHANGELOG section and README install range must match the same `X.Y.Z`.
+- **Keep `CHANGELOG.md` complete.** Every public-API addition/change lands a Keep-a-Changelog entry under `[Unreleased]` in the same change. At release time, roll `[Unreleased]` into a dated `[X.Y.Z]` section and add a fresh empty `[Unreleased]`; fix the compare/release links at the bottom.
+- **SemVer.** Pre-1.0 (`0.y.z`), the minor may carry breaking changes — note them explicitly. From 1.0, breaking changes bump the major. Deft targets Windows for 1.0; other backends are post-1.0 and not a 1.0 commitment.
+
 ## Win32 / accessibility gotchas (learned the hard way)
 
 - **`extern(Windows)` callbacks must be `nothrow`** and wrap their body in `try { ... } catch (Throwable) {}` — never let a D throwable escape into the OS dispatcher.
-- **Widget lifetime:** a widget owns its `HWND`; it's pinned with `GC.addRoot` while alive and released in `dispose()`. `dispose()` is idempotent and destroys children first.
+- **Widget lifetime:** a widget owns its `HWND`; it's pinned with `GC.addRoot` while alive. Deregistration and GC-root release happen in `releaseHandle()`, driven by **`WM_NCDESTROY`** — so a *user-closed* window (which never calls `dispose()`) is still unregistered and unrooted, not leaked. `dispose()` is the explicit-teardown path (idempotent, destroys children first); both converge on `releaseHandle()` via the destroy notification.
 - **Keyboard navigation** requires the message loop to call `IsDialogMessageW(GetActiveWindow(), &msg)` before dispatch, and the top-level window to have `WS_EX_CONTROLPARENT`. Without it, child controls are unreachable by keyboard.
 - **Enter on buttons:** a plain window has no default button, so `Window` answers `DM_GETDEFID` (focused push button = its own default; otherwise `setDefaultButton`). This is native — do **not** emulate keystrokes.
 - **DPI:** `Application.initialize` sets per-monitor DPI awareness (dynamically resolved, with a manifest also declaring it in the demo). A DPI-unaware app is bitmap-scaled and screen-reader cursors land in the wrong place.

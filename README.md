@@ -2,7 +2,7 @@
 
 A native UI framework for the [D programming language](https://dlang.org). Deft wraps real native platform controls — so you get the platform's look, behavior, and **accessibility for free** — and adds a delegate-based event system and automatic box and table layout on top.
 
-> **Status: pre-alpha (work in progress).** The Win32 implementation is feature-complete enough to build real apps: application lifecycle, a window/widget hierarchy, a delegate-based event system, box (`HBox`/`VBox`) and table (`Grid`) layout, and a full set of native controls — labels, buttons/check boxes/radio buttons, single- and multi-line text fields, list/tree/list-box/combo/checked-list views, a tab control, a status bar, menus with keyboard accelerators, a system-tray icon, a timer, and native modal dialogs and message boxes — all with native accessibility. The non-Windows backends (GTK4, Cocoa) are not implemented yet — see [Roadmap](#roadmap).
+> **Status: 0.1.0 — first public preview.** The Win32 implementation is feature-complete enough to build real apps: application lifecycle, a window/widget hierarchy, a delegate-based event system, box (`HBox`/`VBox`) and table (`Grid`) layout, and a full set of native controls — labels, buttons/check boxes/radio buttons, single- and multi-line text fields, list/tree/list-box/combo/checked-list views, a tab control, a status bar, menus with keyboard accelerators, a system-tray icon, a timer, and native modal dialogs and message boxes. Deft targets Windows; other backends (GTK4, Cocoa) are possible future work, not a 1.0 commitment — see [Roadmap](#roadmap).
 
 ## Why Deft
 
@@ -14,9 +14,9 @@ A native UI framework for the [D programming language](https://dlang.org). Deft 
 
 | Platform | Backend | Status |
 |----------|---------|--------|
-| Windows  | Win32   | ✅ implemented |
-| Linux    | GTK4    | ⏳ planned |
-| macOS    | Cocoa   | ⏳ planned |
+| Windows  | Win32   | ✅ implemented (the 1.0 target) |
+| Linux    | GTK4    | possible post-1.0 |
+| macOS    | Cocoa   | possible post-1.0 |
 
 ## Requirements
 
@@ -41,7 +41,7 @@ or in `dub.json`:
 
 ```json
 "dependencies": {
-    "deft": "~>0.1.0-alpha"
+    "deft": "~>0.1.0"
 }
 ```
 
@@ -161,7 +161,7 @@ unittest
 }
 ```
 
-Encode "buttons are 30px tall at the bottom, the list fills the rest" and `dub test` proves it for whatever window sizes you assert. For the *running* app, accessible names, roles, and focusability can be checked programmatically through the MSAA/UIA layer (see [CLAUDE.md](CLAUDE.md)).
+Encode "buttons are 30px tall at the bottom, the list fills the rest" and `dub test` proves it for whatever window sizes you assert. For the *running* app, accessible names, roles, and focusability can be checked programmatically through the MSAA/UIA layer.
 
 ## Building, testing, running
 
@@ -174,7 +174,7 @@ cd demo && dub run        # build and launch the demo app
 cd demo && dub run -b release   # smaller, optimized demo build
 ```
 
-`dub test` exercises the parts with non-trivial logic: layout math (box proportions, grid auto/percent tracks, spanning, per-cell alignment, nesting, padding), accelerator-string parsing and menu-id generation, event registration/dispatch, UTF-8 ↔ UTF-16 conversion, and command-queue thread safety. UI behavior is verified manually via the demo (Win32 needs a running message loop).
+`dub test` exercises the parts with non-trivial logic: layout math (box proportions, grid auto/percent tracks, spanning, per-cell alignment, nesting, padding), accelerator-string parsing and menu-id generation, event registration/dispatch, UTF-8 ↔ UTF-16 conversion, command-queue thread safety, widget geometry (`Rect`/`RECT` conversion), and the `deft.i18n` translation fallbacks. UI behavior is verified manually via the demo (Win32 needs a running message loop).
 
 ## Architecture
 
@@ -192,7 +192,9 @@ The public surface is re-exported from the `deft` package, so `import deft;` is 
 | `deft.controls.*` | The control library: `Label`, `Button` / `CheckBox` / `RadioButton`, `TextBox`, `ListView`, `TreeView`, `ListBox`, `ComboBox`, `CheckListBox`, `TabControl`, `StatusBar`, `Timer`, `TrayIcon`, `Dialog` / `showMessageBox` / `showInputDialog`, and the `Panel` container. |
 | `deft.commandqueue` | `CommandQueue!T` / `UiDispatcher!T` — thread-safe cross-thread UI messaging. |
 | `deft.accessibility` | `setAccessibleName` — custom accessible names via MSAA Direct Annotation. |
+| `deft.i18n` | Localization seam — `setTranslator`/`tr`/`translator` to plug a consumer's catalog into every framework-emitted string (see [Localization](#localization)). |
 | `deft.util.strings` | UTF-8 ↔ UTF-16 helpers for the wide Win32 API. |
+| `deft.util.icons` | `loadIcon` / `loadIconFromFile` — load `HICON`s for `Window.setIcon`. |
 | `deft.platform.win32.*` | Win32 backend: window-class registration and the master window procedure. |
 
 **Handle lifetime.** A `Widget` owns its native `HWND`. Because D's GC is non-deterministic, call `dispose()` for prompt, predictable cleanup (it destroys the window, detaches from the parent, and unregisters the widget). While a widget's `HWND` is alive the widget is pinned as a GC root so it can't be collected out from under the message loop.
@@ -201,22 +203,25 @@ The public surface is re-exported from the `deft` package, so `import deft;` is 
 
 ## Accessibility
 
-Deft uses native controls, so MSAA/IAccessible accessibility — the API JAWS and NVDA use for classic Win32 controls — works out of the box: correct roles, names, and keyboard focus. On top of that the framework:
+Because Deft draws real native controls, the information assistive technologies rely on is correct out of the box — roles, names, and keyboard focus come from the platform, not a bolted-on layer. The framework then adds the touches that make native controls pleasant from the keyboard: per-monitor DPI awareness, dialog-manager focus navigation, native default-button handling, keyboard-openable context menus, single-tab-stop radio groups, and `setAccessibleName` for controls without a visible label.
 
-- enables **per-monitor DPI awareness**, so OS bitmap scaling on high-DPI displays doesn't misalign the screen-reader cursor;
-- routes the message loop through the **dialog manager** (`IsDialogMessage`), so Tab / Shift+Tab / arrow keys move focus between controls;
-- **forwards focus** to the first focusable child when a window is activated, so keyboard users land on a real control;
-- answers `DM_GETDEFID` so **Enter activates the focused (or designated) button** natively — no key emulation;
-- makes **`Dialog` a real dialog-class (`#32770`) window**, so screen readers announce it as a dialog and read its children, and the dialog manager handles Esc → Cancel and Enter → default button;
-- opens **context menus from the keyboard** (Apps key / Shift+F10) as well as the mouse, on `ListView` and `TreeView`, anchored at the selected item;
-- groups **radio buttons into a single tab stop** navigated with the arrow keys (each control starts its own `WS_GROUP`);
-- keeps **multi-line text boxes from trapping Tab** (Tab moves focus; Ctrl+Tab inserts a tab character);
-- **selects the first item on focus** for list/tree/combo controls, so a screen reader has something to announce when the user tabs in;
-- provides `setAccessibleName(widget, name)` for controls that lack a visible text label.
+**[ACCESSIBILITY.md](ACCESSIBILITY.md) is the authoritative reference** — it lists every accessibility behavior and maps each one to its place in the source.
 
-> Standalone static text (a decorative label not attached to a control) is intentionally **not** announced — that matches native Win32 behavior. A static is announced when it labels a control (created immediately before it in z-order) or when reached with the screen-reader cursor.
+## Localization
 
-For a full checklist that maps each accessibility behavior to its location in the source, see [ACCESSIBILITY.md](ACCESSIBILITY.md).
+Deft is translation-ready through a single pluggable hook in `deft.i18n`. The framework never bundles a message catalog — pulling a catalog parser (and likely Phobos) into the library would force one format on every consumer — so localization is **bring-your-own-catalog**: you install a `Translator` delegate, and every user-facing string the framework emits is looked up through it.
+
+```d
+import deft;
+
+// Back the translator with anything: gettext, an associative array, XLIFF…
+string[string] catalog = ["Yes": "Oui", "No": "Non"];
+setTranslator((string key) => key in catalog ? catalog[key] : key);
+```
+
+With no translator installed, `tr` returns its argument unchanged, so an un-localized app behaves exactly as before. The framework's own handful of strings (the standard dialog buttons) additionally fall back to the operating system's own localized text, so they are translated even with no catalog at all. Install the translator once, before creating UI.
+
+The `demo/` app is fully localized this way (its catalogs are loaded with the `mofile` gettext library, a *demo-only* dependency — the library itself stays Phobos-free).
 
 ## Windows resources (manifest + version info)
 
@@ -257,8 +262,9 @@ Done so far (see [`docs/plans/completed/`](docs/plans/completed/)):
 
 Next:
 
-- GTK4 (Linux) and Cocoa (macOS) backends.
-- Richer layout (per-cell alignment is in; cell/control alignment options may grow), and additional controls as consumers need them.
+- The road to 1.0 is Windows-only: a frozen, documented public API, complete DDoc coverage, and more example apps beyond the demo gallery.
+- Additional controls and richer layout (per-cell alignment is in; more alignment options may grow) as consumers need them.
+- Beyond 1.0, possibly GTK4 (Linux) and Cocoa (macOS) backends — not a 1.0 commitment.
 
 ## Contributing
 
@@ -269,8 +275,6 @@ This is an early-stage open-source project. Conventions:
 - Keep the library free of Phobos imports in non-test code; unit-test blocks may use Phobos.
 - Document public symbols with DDoc comments.
 - `dub test` must pass before a change lands.
-
-See [CLAUDE.md](CLAUDE.md) for a deeper tour of the codebase and its conventions.
 
 ## License
 

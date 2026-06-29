@@ -36,7 +36,7 @@ BEGIN
             VALUE "FileDescription",  "Deft Framework Demo"
             VALUE "FileVersion",      "0.1.0.0"
             VALUE "InternalName",     "deft-demo"
-            VALUE "LegalCopyright",   "Copyright \xA9 2026 Andr\xE9 Polykanine"
+            VALUE "LegalCopyright",   "Copyright \xA9 2026 Andr\xE9 Polykanine, Oire Software"
             VALUE "OriginalFilename", "deft-demo.exe"
             VALUE "ProductName",      "Deft Demo"
             VALUE "ProductVersion",   "0.1.0.0"

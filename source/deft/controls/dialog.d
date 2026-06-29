@@ -280,22 +280,12 @@ class Dialog : Widget
 		}
 	}
 
-	/// Move focus to the first focusable child control.
+	/// Move focus to the first focusable control, descending into containers.
 	private void focusFirstControl()
 	{
-		foreach (child; children)
-		{
-			if (child.handle is null)
-				continue;
-			auto style = GetWindowLongW(child.handle, GWL_STYLE);
-			if ((style & WS_TABSTOP)
-				&& IsWindowVisible(child.handle)
-				&& IsWindowEnabled(child.handle))
-			{
-				SetFocus(child.handle);
-				return;
-			}
-		}
+		HWND first = firstFocusableIn(children);
+		if (first !is null)
+			SetFocus(first);
 	}
 
 	private void centerOnParent()

@@ -41,6 +41,26 @@ bool dispatchTimer(uint id)
 	return false;
 }
 
+/**
+ * Stop and forget every timer owned by `owner`.
+ *
+ * Called when the owner's window is destroyed: Win32 kills the native timers
+ * along with the `HWND`, but Deft's registry entries and `running_` flags would
+ * otherwise survive — leaking the timer objects and making `isRunning()` lie.
+ */
+void stopTimersFor(Widget owner)
+{
+	uint[] dead;
+	foreach (id, t; g_timers)
+		if (t.owner_ is owner)
+			dead ~= id;
+	foreach (id; dead)
+	{
+		g_timers[id].running_ = false;
+		g_timers.remove(id);
+	}
+}
+
 /// A repeating or one-shot timer bound to an owner widget's window.
 class Timer
 {

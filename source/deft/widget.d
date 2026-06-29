@@ -97,6 +97,9 @@ abstract class Widget
 
 	private bool disposed_;
 
+	/// Whether this widget is currently pinned as a GC root (see `registerHandle`).
+	private bool rooted_;
+
 	/**
 	 * The native window handle this widget owns (null until created).
 	 *
@@ -264,14 +267,12 @@ abstract class Widget
 		if (parent_ !is null)
 			parent_.removeChild(this);
 
-		if (handle_)
-		{
-			unregisterWidget(handle_);
+		// Destroying the native window delivers WM_NCDESTROY synchronously, where
+		// `releaseHandle` unregisters it and drops the GC root. The trailing call
+		// covers the rare case of a widget that never owned a handle.
+		if (handle_ !is null)
 			DestroyWindow(handle_);
-			handle_ = null;
-		}
-
-		GC.removeRoot(cast(void*) this);
+		releaseHandle();
 	}
 
 	/**
@@ -283,8 +284,31 @@ abstract class Widget
 		if (!handle)
 			return;
 		GC.addRoot(cast(void*) this);
+		rooted_ = true;
 		SetWindowLongPtrW(handle, GWLP_USERDATA, cast(LONG_PTR) cast(void*) this);
 		registerWidget(handle, this);
+	}
+
+	/**
+	 * Release the framework's hold on the native window: drop it from the
+	 * HWND→Widget registry, clear its back-pointer and release the GC root.
+	 *
+	 * Driven by `WM_NCDESTROY` so it runs no matter who destroyed the window —
+	 * including a user closing it, which never reaches `dispose()`. Idempotent.
+	 */
+	private void releaseHandle()
+	{
+		if (handle_ !is null)
+		{
+			unregisterWidget(handle_);
+			SetWindowLongPtrW(handle_, GWLP_USERDATA, 0);
+			handle_ = null;
+		}
+		if (rooted_)
+		{
+			GC.removeRoot(cast(void*) this);
+			rooted_ = false;
+		}
 	}
 
 	/**
@@ -295,8 +319,42 @@ abstract class Widget
 	 */
 	LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 	{
+		if (msg == WM_NCDESTROY)
+		{
+			// The last message a window receives. Release our hold here so a
+			// user-closed window (which never calls dispose()) is unregistered
+			// and unrooted instead of leaking with a stale registry entry.
+			HWND h = handle_;
+			releaseHandle();
+			return DefWindowProcW(h, msg, wParam, lParam);
+		}
 		return DefWindowProcW(handle, msg, wParam, lParam);
 	}
+}
+
+/**
+ * The handle of the first focusable control among `kids`, searched depth-first.
+ *
+ * A control is focusable when it is a tab stop and currently visible and
+ * enabled. Non-tab-stop containers (such as a `Panel`) are descended into, so a
+ * control nested inside one is still found — without this, initial focus could
+ * land on the bare window and leave keyboard and screen-reader users stranded.
+ */
+HWND firstFocusableIn(Widget[] kids) nothrow
+{
+	foreach (child; kids)
+	{
+		if (child is null || child.handle is null
+			|| !IsWindowVisible(child.handle)
+			|| !IsWindowEnabled(child.handle))
+			continue;
+		auto style = GetWindowLongW(child.handle, GWL_STYLE);
+		if (style & WS_TABSTOP)
+			return child.handle;
+		if (auto found = firstFocusableIn(child.children))
+			return found;
+	}
+	return null;
 }
 
 unittest

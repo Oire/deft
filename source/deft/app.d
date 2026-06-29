@@ -10,8 +10,8 @@ import core.sys.windows.windows;
 import core.sys.windows.commctrl;
 import core.sys.windows.objbase;
 
-import deft.menu : acceleratorTable;
 import deft.platform.win32.init : ensureWindowClass;
+import deft.window : activeWindowAcceleratorTable;
 
 // SetProcessDpiAwarenessContext is Win10 1703+; resolved dynamically so the
 // framework still loads on older systems (falling back to SetProcessDPIAware).
@@ -103,8 +103,9 @@ class Application
 			HWND active = GetActiveWindow();
 
 			// Keyboard accelerators (menu shortcuts) take priority: translating
-			// one dispatches the matching WM_COMMAND and consumes the message.
-			HACCEL accel = acceleratorTable();
+			// one dispatches the matching WM_COMMAND and consumes the message. The
+			// table is the active window's, so shortcuts are per-window.
+			HACCEL accel = activeWindowAcceleratorTable(active);
 			if (active !is null && accel !is null
 				&& TranslateAcceleratorW(active, accel, &msg))
 				continue;

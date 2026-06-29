@@ -26,6 +26,7 @@ class CommandQueue(T)
 	private T[] items;
 	private Mutex mutex;
 
+	/// Create an empty queue with its own mutex.
 	this()
 	{
 		mutex = new Mutex();
@@ -73,6 +74,11 @@ struct UiDispatcher(T)
 	/// The wake message id posted to `targetHwnd`.
 	uint messageId = defaultWakeMessage;
 
+	/**
+	 * Create a dispatcher targeting `hwnd`, with a fresh backing queue. `messageId`
+	 * is the wake message posted to the window on `post` (defaults to
+	 * `defaultWakeMessage`).
+	 */
 	this(HWND hwnd, uint messageId = defaultWakeMessage)
 	{
 		this.queue = new CommandQueue!T();

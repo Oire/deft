@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] — 2026-06-29
+
 Controls and system services (plan 002), plus a review pass focused on
 keyboard/screen-reader use. Win32 only.
 
@@ -35,7 +37,13 @@ keyboard/screen-reader use. Win32 only.
   and the Apps key / Shift+F10), anchored at the selected item.
 - **First-item auto-selection on focus** for `ListView`, `TreeView`, `ListBox`,
   the drop-down-list `ComboBox`, and `CheckListBox`.
-- **Demo** expanded into a widget gallery exercising every control type.
+- **Window icons** (`Window.setIcon`) plus `deft.util.icons` (`loadIcon`,
+  `loadIconFromFile`) for title-bar, taskbar and Alt+Tab icons.
+- **Localization seam** (`deft.i18n`): `setTranslator`/`tr`/`translator` — a hook
+  through which a consumer plugs in its own catalog (the library bundles none), so
+  every user-facing string the framework emits can be translated.
+- **Demo** expanded into a widget gallery exercising every control type, and fully
+  localized through the i18n seam (gettext catalogs via `mofile`, demo-only).
 
 ### Changed
 
@@ -91,5 +99,6 @@ First milestone: the core framework infrastructure (plan 001). Win32 only.
 - Project documentation: `README.md`, `CLAUDE.md`, this changelog, and
   `.editorconfig`.
 
-[Unreleased]: https://github.com/Oire/deft/compare/v0.1.0-alpha...HEAD
+[Unreleased]: https://github.com/Oire/deft/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Oire/deft/compare/v0.1.0-alpha...v0.1.0
 [0.1.0-alpha]: https://github.com/Oire/deft/releases/tag/v0.1.0-alpha

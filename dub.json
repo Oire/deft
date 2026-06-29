@@ -5,7 +5,7 @@
 	"authors": [
 		"André Polykanine <ap@oire.me>"
 	],
-	"copyright": "Copyright © 2026, André Polykanine, Oire Software",
+	"copyright": "Copyright © 2026 André Polykanine, Oire Software",
 	"license": "BSL-1.0",
 	"targetType": "library",
 	"sourcePaths": [

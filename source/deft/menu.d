@@ -97,23 +97,6 @@ int nextMenuId()
 /// id → stored item registry, so `WM_COMMAND` can find the originating item.
 private __gshared MenuItem*[int] g_menuCommands;
 
-/// HACCEL for the active window's menus, fed to `TranslateAccelerator`.
-private __gshared HACCEL g_accelTable;
-
-/// The current application accelerator table, or null.
-HACCEL acceleratorTable()
-{
-	return g_accelTable;
-}
-
-/// Install the accelerator table the message loop should use (destroys the old).
-void setAcceleratorTable(HACCEL table)
-{
-	if (g_accelTable !is null && g_accelTable !is table)
-		DestroyAcceleratorTable(g_accelTable);
-	g_accelTable = table;
-}
-
 /**
  * Dispatch a menu or accelerator command to its item's `onClicked`.
  *

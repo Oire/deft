@@ -14,14 +14,15 @@ import core.sys.windows.windows;
 import deft.app : Application;
 import deft.controls.control : Control, routeCommand, routeNotify;
 import deft.controls.statusbar : StatusBar;
-import deft.controls.timer : dispatchTimer;
+import deft.controls.timer : dispatchTimer, stopTimersFor;
 import deft.controls.trayicon : dispatchTrayMessage, trayCallbackMessage;
 import deft.events;
 import deft.layout : Sizer;
-import deft.menu : MenuBar, dispatchMenuCommand, setAcceleratorTable;
+import deft.menu : MenuBar, dispatchMenuCommand;
 import deft.util.strings;
 import deft.widget;
 import deft.platform.win32.init : deftWindowClassName, hInstance;
+import deft.platform.win32.wndproc : lookupWidget;
 
 /// Count of live top-level `Window`s, so the app quits when the last one closes.
 private __gshared int g_topLevelWindowCount;
@@ -71,6 +72,9 @@ class Window : Widget
 
 	/// Optional menu bar; retained so the GC keeps its handle alive.
 	private MenuBar menuBar_;
+
+	/// This window's accelerator table (its menu's shortcuts), or null.
+	private HACCEL accelTable_;
 
 	/// Control id of the designated default button (0 = none).
 	private int defaultButtonId_;
@@ -192,9 +196,21 @@ class Window : Widget
 		{
 			SetMenu(handle, menuBar.handle);
 			DrawMenuBar(handle);
-			setAcceleratorTable(menuBar.buildAcceleratorTable());
+			if (accelTable_ !is null)
+				DestroyAcceleratorTable(accelTable_);
+			accelTable_ = menuBar.buildAcceleratorTable();
 			relayout();
 		}
+	}
+
+	/**
+	 * This window's accelerator table (the shortcuts of its attached menu), or
+	 * null. The message loop translates accelerators against the *active*
+	 * window's table, so each window keeps its own shortcuts.
+	 */
+	HACCEL acceleratorTable() @safe pure nothrow @nogc
+	{
+		return accelTable_;
 	}
 
 	/// Re-run the root sizer over the current client area, if one is set.
@@ -236,20 +252,10 @@ class Window : Widget
 			SetFocus(first);
 	}
 
-	/// The handle of the first visible, enabled, tab-stop child, or null.
+	/// The handle of the first visible, enabled, tab-stop control, or null.
 	private HWND firstFocusableChild()
 	{
-		foreach (child; children)
-		{
-			if (child.handle is null)
-				continue;
-			auto style = GetWindowLongW(child.handle, GWL_STYLE);
-			if ((style & WS_TABSTOP)
-				&& IsWindowVisible(child.handle)
-				&& IsWindowEnabled(child.handle))
-				return child.handle;
-		}
-		return null;
+		return firstFocusableIn(children);
 	}
 
 	override LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam)
@@ -341,6 +347,16 @@ class Window : Widget
 			return super.processMessage(msg, wParam, lParam);
 
 		case WM_DESTROY:
+			// Release resources tied to this window's lifetime before it goes:
+			// stop its timers (their native counterparts die with the HWND, but
+			// the registry entries would linger) and free its accelerator table.
+			stopTimersFor(this);
+			if (accelTable_ !is null)
+			{
+				DestroyAcceleratorTable(accelTable_);
+				accelTable_ = null;
+			}
+
 			// Quit when this window is the explicitly designated main window, or
 			// when it is the last live top-level window — so a single-window app
 			// ends on close while closing a secondary window leaves the app running.
@@ -357,4 +373,21 @@ class Window : Widget
 			return super.processMessage(msg, wParam, lParam);
 		}
 	}
+}
+
+/**
+ * The accelerator table of the top-level window `active`, or null.
+ *
+ * The message loop calls this each iteration with `GetActiveWindow()` so menu
+ * shortcuts are scoped to whichever window is active — in a multi-window app
+ * each window's shortcuts work only while it is focused, rather than the last
+ * window to attach a menu owning the shortcuts for all of them.
+ */
+HACCEL activeWindowAcceleratorTable(HWND active)
+{
+	if (active is null)
+		return null;
+	if (auto window = cast(Window) lookupWidget(active))
+		return window.acceleratorTable();
+	return null;
 }

@@ -80,6 +80,7 @@ class Panel : Widget
 		return sizer_ !is null ? sizer_.preferredSize() : Size.init;
 	}
 
+	/// Forward children's `WM_COMMAND`/`WM_NOTIFY` and relayout on size; else defer.
 	override LRESULT processMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		switch (msg)
