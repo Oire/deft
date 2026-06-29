@@ -1,10 +1,11 @@
 {
 	"name": "deft",
-	"description": "Native UI framework for D",
+	"description": "Build native, accessible desktop GUIs in D. Real platform controls, a delegate-based event system, and box & grid layouts.",
+	"homepage": "https://deft.oire.dev",
 	"authors": [
-		"André Polykanine"
+		"André Polykanine <ap@oire.me>"
 	],
-	"copyright": "Copyright © 2026, André Polykanine",
+	"copyright": "Copyright © 2026, André Polykanine, Oire Software SARL",
 	"license": "BSL-1.0",
 	"targetType": "library",
 	"sourcePaths": [
